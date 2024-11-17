@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class Customer extends Seeder
 {
@@ -18,10 +19,6 @@ class Customer extends Seeder
             'email' => NULL,
             'phone_number' => '081234567890',
             'address' => 'Jl. ABC No. 123',
-            'city' => 'Jakarta',
-            'province' => 'DKI Jakarta',
-            'zip_code' => '12345',
-            'country' => 'Indonesia',
             'latitude' => NULL,
             'longitude' => NULL,
             'pic_process' => 'ABC',
@@ -32,5 +29,8 @@ class Customer extends Seeder
             'pic_financial_phone_number' => '081234567890',
             'created_at' => now(),
         ];
+
+        // Insert data
+        DB::table('customers')->insert($customer);
     }
 }

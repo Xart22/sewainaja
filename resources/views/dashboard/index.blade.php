@@ -1,7 +1,7 @@
 @extends('layouts.app') @section('content')
 
 
-<div class="mt-14 container space-y-4">
+<div class="mt-14  space-y-4">
     <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Dashboard</h1>
 
 

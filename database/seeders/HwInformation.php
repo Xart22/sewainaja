@@ -23,6 +23,6 @@ class HwInformation extends Seeder
             'hw_description' => 'Memperkenalkan perangkat multifungsi mono A4 yang ringkas dengan kapabilitas pemindaian super cepat dan konektivitas seluler terkini. Andal dan serbaguna, seri iR1643 menawarkan beragam luas fungsi yang disesuaikan agar selaras dengan tuntutan kelompok kerja yang sibuk.',
         ];
 
-        DB::table('hw_informations')->insert($hwInformation);
+        DB::table('hardware_information')->insert($hwInformation);
     }
 }

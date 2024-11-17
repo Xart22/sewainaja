@@ -5,14 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Customer extends Model
+class HardwareInformation extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
 
-    public function hardware()
+
+    public function customer()
     {
-        return $this->belongsTo(HardwareInformation::class, 'hw_id');
+        return $this->belongsTo(Customer::class, 'id', 'hw_id');
     }
 }

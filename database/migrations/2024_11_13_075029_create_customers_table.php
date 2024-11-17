@@ -16,23 +16,22 @@ return new class extends Migration
 
             $table->string('name');
             $table->string('group_name')->nullable();
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
             $table->string('phone_number')->unique();
             $table->string('address');
-            $table->string('city');
-            $table->string('province');
-            $table->string('zip_code');
-            $table->string('country');
             $table->string('latitude')->nullable();
             $table->string('longitude')->nullable();
-            $table->string('pic_process');
-            $table->string('pic_process_phone_number');
-            $table->string('pic_installation');
-            $table->string('pic_installation_phone_number');
-            $table->string('pic_financial');
-            $table->string('pic_financial_phone_number');
-            $table->bigInteger('hw_id')->unsigned();
-            $table->foreign('hw_id')->references('id')->on('hw_informations');
+            $table->string('pic_process')->nullable();
+            $table->string('pic_process_phone_number')->nullable();
+            $table->string('pic_installation')->nullable();
+            $table->string('pic_installation_phone_number')->nullable();
+            $table->string('pic_financial')->nullable();
+            $table->string('pic_financial_phone_number')->nullable();
+            $table->dateTime('contract_start');
+            $table->dateTime('expired_at');
+            $table->boolean('is_active')->default(true);
+            $table->bigInteger('hw_id')->nullable()->unsigned();
+            $table->foreign('hw_id')->references('id')->on('hardware_information');
             $table->timestamps();
         });
     }

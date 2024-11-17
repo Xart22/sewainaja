@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('hw_informations', function (Blueprint $table) {
+        Schema::create('hardware_information', function (Blueprint $table) {
             $table->id();
             $table->string('hw_name')->nullable();
             $table->string('hw_type');
@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('hw_technology')->nullable();
             $table->string('hw_bw_color')->nullable();
             $table->longText('hw_description')->nullable();
+            $table->boolean('used_status')->default(false);
+            $table->bigInteger('customer_id')->unsigned()->nullable();
             $table->timestamps();
         });
     }
@@ -32,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('hw_informations');
+        Schema::dropIfExists('hardware_information');
     }
 };

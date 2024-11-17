@@ -14,7 +14,7 @@ class User extends Seeder
     public function run(): void
     {
         $userAdmin = [
-            'username' => 'admin',
+            'nip' => 'admin',
             'name' => 'Admin',
             'role' => 'Admin',
             'password' => bcrypt('password'),
@@ -22,7 +22,7 @@ class User extends Seeder
         ];
 
         $userCso = [
-            'username' => 'cso',
+            'nip' => 'cso',
             'name' => 'CSO',
             'role' => 'CSO',
             'password' => bcrypt('password'),
@@ -30,7 +30,7 @@ class User extends Seeder
         ];
 
         $userTeknisi = [
-            'username' => 'teknisi',
+            'nip' => 'teknisi',
             'name' => 'Teknisi',
             'role' => 'Teknisi',
             'password' => bcrypt('password'),
