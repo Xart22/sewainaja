@@ -26,7 +26,7 @@ class AuthController extends Controller
         }
 
         return back()->withInput()->withErrors([
-            'nip' => 'NIP atau password salah.',
+            'nip' => 'The provided credentials do not match our records.',
         ]);
     }
 

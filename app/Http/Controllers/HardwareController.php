@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HardwareInformation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -71,10 +72,14 @@ class HardwareController extends Controller
      */
     public function show(string $id)
     {
+        $hardware = HardwareInformation::find($id);
+        $encryptedValue  = Crypt::encrypt($hardware->hw_serial_number);
+        $qrCode = QrCode::size(200)->generate(route('customer-online', $encryptedValue));
         return view(
             'master-data.hardware.show',
             [
-                'hardware' => HardwareInformation::find($id)
+                'hardware' => $hardware,
+                'qrCode' => $qrCode
             ]
         );
     }
@@ -139,6 +144,35 @@ class HardwareController extends Controller
         return redirect()->route('master-data.hardware.index')
             ->with('success', 'Hardware Information deleted successfully.');
     }
+
+    public function copyHardware(Request $request)
+    {
+        $hardware = HardwareInformation::find($request->hardware_id);
+        $newHardware = $hardware->replicate();
+        $newHardware->hw_serial_number = $request->hw_serial_number;
+        $newHardware->customer_id = null;
+        $newHardware->used_status = 0;
+        $newHardware->save();
+
+        return redirect()->route('master-data.hardware.index')
+            ->with('success', 'Hardware Information copied successfully.');
+    }
+
+
+    public function getData()
+    {
+        // get data from database group by hardware type
+        $data = HardwareInformation::selectRaw('MIN(id) as id, hw_name, hw_type, hw_brand, hw_image')
+            ->groupBy('hw_name', 'hw_type', 'hw_brand', 'hw_image')
+            ->get();
+
+        foreach ($data as $key => $value) {
+            $value->hw_image = asset($value->hw_image);
+        }
+
+        return response()->json($data);
+    }
+
 
     public function qrCode(string $id)
     {

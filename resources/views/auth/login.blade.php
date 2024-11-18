@@ -21,7 +21,7 @@
 <body class="font-inter antialiased dark:bg-black dark:text-white/50 "
     style="background-image: url('{{ asset('assets/img/bg-login.png') }}'); background-size: cover; background-position: center;">
 
-    <div class="min-h-screen flex items-center justify-center ">
+    <div class="min-h-screen flex items-center justify-center p-2">
         <div class="w-full max-w-md bg-white rounded-lg shadow-lg px-12 py-8">
             <img src="{{ asset('assets/logo/sewainaja-blue.png') }}" alt="Logo" class="h-16 w-auto mx-auto mb-8">
             <h1 class="text-2xl font-bold text-gray-800 mb-8">Sign In</h1>

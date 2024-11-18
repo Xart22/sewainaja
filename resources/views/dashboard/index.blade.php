@@ -1,4 +1,14 @@
-@extends('layouts.app') @section('content')
+@extends('layouts.app')
+@section('title')
+Dashboard
+@endsection
+
+@section('header')
+@vite(['resources/js/Dashboard.js'])
+
+@endsection
+
+@section('content')
 
 
 <div class="mt-14  space-y-4">
@@ -29,16 +39,7 @@
                 <table id="tablePermohonanBaru" class="table-auto w-full">
                     <thead>
                         <tr>
-                            <th>
-                                <span class="flex items-center">
-                                    No
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                    </svg>
-                                </span>
-                            </th>
+
                             <th data-type="date" data-format="YYYY/DD/MM">
                                 <span class="flex items-center">
                                     ID TIKET
@@ -51,7 +52,7 @@
                             </th>
                             <th>
                                 <span class="flex items-center">
-                                    Waktu Permohonan
+                                    Tanggal Permohonan
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -81,6 +82,16 @@
                             </th>
                             <th>
                                 <span class="flex items-center">
+                                    Keperluan
+                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
+                                    </svg>
+                                </span>
+                            </th>
+                            <th>
+                                <span class="flex items-center">
                                     Status
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -96,18 +107,7 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">Flowbite</td>
-                            <td>2021/25/09</td>
-                            <td>269000</td>
-                            <td>49%</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
 
-                    </tbody>
                 </table>
             </div>
             <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="permohonanSelesai" role="tabpanel"
@@ -115,17 +115,8 @@
                 <table id="tablePermohonanSelesai" class="table-auto w-full">
                     <thead>
                         <tr>
+
                             <th>
-                                <span class="flex items-center">
-                                    No
-                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                    </svg>
-                                </span>
-                            </th>
-                            <th data-type="date" data-format="YYYY/DD/MM">
                                 <span class="flex items-center">
                                     ID TIKET
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -137,7 +128,7 @@
                             </th>
                             <th>
                                 <span class="flex items-center">
-                                    Waktu Permohonan
+                                    Tanggal Permohonan
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -167,6 +158,16 @@
                             </th>
                             <th>
                                 <span class="flex items-center">
+                                    Keperluan
+                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
+                                    </svg>
+                                </span>
+                            </th>
+                            <th>
+                                <span class="flex items-center">
                                     Status
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -182,18 +183,7 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td class="font-medium text-gray-900 whitespace-nowrap dark:text-white">Flowbite</td>
-                            <td>2021/25/09</td>
-                            <td>269000</td>
-                            <td>49%</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
 
-                    </tbody>
                 </table>
             </div>
         </div>

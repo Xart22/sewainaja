@@ -64,10 +64,10 @@ Hardware
                 class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring ">
         </div>
         <div class="mt-4 flex justify-around items-center flex-col md:flex-row">
-            <img src=" {{ $hardware->hw_image }}" alt="hardware image" class="w-52 ">
+            <img src=" {{ $hardware->hw_image }}" alt="{{ $hardware->hw_name }}" class="h-52 object-cover">
             <div class="flex flex-col items-center">
                 QR Code
-                {!! QrCode::size(256)->generate('https://google.com') !!}
+                {{$qrCode}}
 
             </div>
 

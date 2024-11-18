@@ -11,17 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('keluhans', function (Blueprint $table) {
+        Schema::create('customer_supports', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('hw_id')->unsigned();
+            $table->string('no_ticket')->unique();
+            $table->bigInteger('customer_id')->unsigned();
             $table->string('nama_pelapor');
             $table->string('no_wa_pelapor');
             $table->string('keperluan');
-            $table->longText('keluhan');
+            $table->longText('message');
             $table->bigInteger('responded_by')->unsigned()->nullable();
             $table->bigInteger('tekhnisi_id')->unsigned()->nullable();
             $table->string('status')->default('Waiting');
-            $table->foreign('hw_id')->references('id')->on('hardware_information')->onDelete('cascade');
+            $table->time('waktu_respon')->nullable();
+            $table->time('waktu_perjalanan')->nullable();
+            $table->time('waktu_pengerjaan')->nullable();
+            $table->time('waktu_selesai')->nullable();
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
             $table->foreign('responded_by')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('tekhnisi_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
@@ -33,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('keluhans');
+        Schema::dropIfExists('customer_supports');
     }
 };

@@ -27,7 +27,10 @@ class Customer extends Seeder
             'pic_installation_phone_number' => '081234567890',
             'pic_financial' => 'GHI',
             'pic_financial_phone_number' => '081234567890',
+            'contract_start' => now(),
+            'expired_at' => now()->addDay(),
             'created_at' => now(),
+
         ];
 
         // Insert data

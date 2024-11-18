@@ -92,8 +92,9 @@
                                 d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z" />
                         </svg>
                         <span class="flex-1 ms-3 whitespace-nowrap">Dashboard</span>
+                        {{-- count notif --}}
                         <span
-                            class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-800 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300">Pro</span>
+                            class="flex items-center justify-center w-6 h-6 text-xs text-white bg-red-500 rounded-full">3</span>
                     </a>
                 </li>
                 <li>
