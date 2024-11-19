@@ -13,4 +13,5 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/customer-support', [CustomerSupportController::class, 'getData'])->name('customer-support-data');
 
+
 Route::get('/hardware-data', [HardwareController::class, 'getData'])->name('hardware-data');

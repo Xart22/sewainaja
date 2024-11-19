@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ config('app.name', 'Laravel') }} | @yield('title')</title>
+    <title id="title">{{ config('app.name', 'Laravel') }} | @yield('title')</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -94,7 +94,8 @@
                         <span class="flex-1 ms-3 whitespace-nowrap">Dashboard</span>
                         {{-- count notif --}}
                         <span
-                            class="flex items-center justify-center w-6 h-6 text-xs text-white bg-red-500 rounded-full">3</span>
+                            class="flex items-center justify-center w-6 h-6 text-xs text-white bg-red-500 rounded-full"
+                            id="countNotif"></span>
                     </a>
                 </li>
                 <li>
@@ -175,7 +176,8 @@
         @yield('content')
     </div>
 
-
+    {{-- Notif sound --}}
+    <audio id="notifSound" src="{{ asset('assets/sound/simple-notification-152054.mp3') }}"></audio>
 </body>
 
 </html>

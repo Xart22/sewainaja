@@ -40,6 +40,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::put('/master-data/customer/{id}', [CustomerController::class, 'update'])->name('master-data.customer.update');
     Route::delete('/master-data/customer/{id}', [CustomerController::class, 'destroy'])->name('master-data.customer.destroy');
 
+    Route::get('/customer-support/send/{id}', [CustomerSupportController::class, 'sendChatWeb'])->name('send-chat');
+
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 

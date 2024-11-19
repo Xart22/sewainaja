@@ -10,9 +10,8 @@ if (tablePermohonanBaru) {
     tablePermohonanBaru = new DataTable("#tablePermohonanBaru", {
         labels: {
             placeholder: "Cari...",
-            perPage: "{select} baris per halaman",
+
             noRows: "Data tidak ditemukan",
-            info: "Menampilkan {start} sampai {end} dari {rows} baris",
         },
         sortable: true,
         columns: [
@@ -26,40 +25,78 @@ if (tablePermohonanBaru) {
 }
 
 if (tablePermohonanSelesai) {
-    tablePermohonanSelesai = new DataTable("#tablePermohonanSelesai");
+    tablePermohonanSelesai = new DataTable("#tablePermohonanSelesai", {
+        labels: {
+            placeholder: "Cari...",
+
+            noRows: "Data tidak ditemukan",
+        },
+        sortable: true,
+        columns: [
+            {
+                select: 0,
+                type: "string",
+                sortable: true,
+            },
+        ],
+    });
 }
 
-const dataPermohonanBaru = [];
-const dataPermohonanSelesai = [];
 const getData = async (tablePermohonanBaru, tablePermohonanSelesai) => {
+    const count = document.querySelector("#countNotif").innerHTML;
+    const countNotif = document.querySelector("#countNotif");
+    const notifSound = document.querySelector("#notifSound");
     const response = await fetch("/api/customer-support");
     const data = await response.json();
     const newData = [];
+    const title = document.querySelector("#title");
+    title.innerHTML = `Permohonan Baru (${data.count})`;
     data.data.map((permohonan) => {
-        if (permohonan.status === "Waiting") {
-            const date = new Date(permohonan.created_at);
-            //format date to dd-mm-yyyy hh:mm:ss
-            const formattedDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-            newData.push([
-                permohonan.no_ticket,
-                formattedDate,
-                permohonan.nama_pelapor,
-                permohonan.no_wa_pelapor,
-                permohonan.keperluan,
-                permohonan.status,
-                "aw",
-            ]);
-        }
+        const date = new Date(permohonan.created_at);
+        const formattedDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+        const action = `
+       <div class="flex justify-start space-x-2">
+                            <a href=""
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                                Detail
+                            </a>
+                            <a href="/customer-support/send/${permohonan.id}" target="_blank"
+                                class="bg-green-300 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-full">
+                                WhatsApp
+                            </a>
+                            
+                        </div>
+
+        `;
+        const status =
+            permohonan.status === "Responded"
+                ? `<p class="bg-green-500 text-white font-bold py-1 p-3 rounded-full">${permohonan.status}</p>`
+                : `<span class="bg-red-500 text-white font-bold py-1 px-2 rounded-full">${permohonan.status}</span>`;
+        newData.push([
+            permohonan.no_ticket,
+            formattedDate,
+            permohonan.nama_pelapor,
+            permohonan.no_wa_pelapor,
+            permohonan.keperluan,
+            status,
+            permohonan.cso ? permohonan.cso.name : "",
+            action,
+        ]);
     });
+    countNotif.innerHTML = data.count;
 
-    dataPermohonanBaru.push(newData);
+    if (count < data.count) {
+        notifSound.play();
+    }
+    if (tablePermohonanBaru && tablePermohonanSelesai) {
+        tablePermohonanBaru.data.data = [];
 
-    tablePermohonanBaru.rows.remove();
-    tablePermohonanBaru.insert({ data: newData });
+        tablePermohonanBaru.insert({ data: newData });
+    }
 };
 
 getData(tablePermohonanBaru, tablePermohonanSelesai);
 
-// setInterval(() => {
-//     getData(tablePermohonanBaru, tablePermohonanSelesai);
-// }, 5000);
+setInterval(() => {
+    getData(tablePermohonanBaru, tablePermohonanSelesai);
+}, 5000);

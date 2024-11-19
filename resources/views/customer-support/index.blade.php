@@ -10,7 +10,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    @vite(['resources/css/app.css', 'resources/js/app.js','resources/js/form-laporan.js'])
+    @vite(['resources/css/app.css','resources/js/form-laporan.js'])
     <script>
         function isMobileDevice() {
             return /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
@@ -45,13 +45,16 @@
                     // Menampilkan nomor valid di input field
                     document.getElementById('phone').value = waNumber;
                     document.getElementById('invalid-message').style.display = 'none';
+                    document.getElementById('submit').disabled = false;
                 } else {
                     // Menyembunyikan pesan valid jika format tidak valid
                     document.getElementById('invalid-message').style.display = 'block';
+                    document.getElementById('submit').disabled = true;
                 }
             } else {
                 // Menyembunyikan pesan jika nomor terlalu pendek
                 document.getElementById('invalid-message').style.display = 'none';
+                document.getElementById('submit').disabled = false;
             }
         }
     </script>
@@ -93,7 +96,7 @@
                 <p class="text-white">Informasi Customer</p>
                 <p class="text-white">{{ $data->customer->name }}</p>
             </div>
-            <img src="{{ $data->hw_image }}" alt="Mesin" class="h-32" />
+            <img src="{{ $data->hw_image }}" alt="{{$data->hw_name}}" class="h-32" />
         </div>
 
         <form action="{{route('customer-support.store') }}" method="POST" class=" mt-5 md:w-1/4 w-full">
@@ -134,7 +137,7 @@
 
             <button
                 class="block text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full mt-5"
-                type="submit">
+                type="submit" id="submit" disabled>
                 Kirim
             </button>
 
@@ -160,10 +163,14 @@
                 <p class="text-base text-center mt-2 text-gray-500">
                     Terima kasih telah menghubungi kami. Tim customer service kami akan segera menghubungi Anda
                 </p>
-
-
+                <button type="button" data-modal-hide="successModal"
+                    class="mt-3 text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
+                    Tutup
+                </button>
             </div>
+
         </div>
+
     </div>
 </body>
 

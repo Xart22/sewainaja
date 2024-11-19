@@ -23,13 +23,13 @@ Dashboard
                     <button
                         class="inline-block w-full p-4 border-b-2 rounded-t-lg text-lg font-semibold text-gray-800 dark:text-gray-100 hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
                         id="permohonanBaru-tab" data-tabs-target="#permohonanBaru" type="button" role="tab"
-                        aria-controls="permohonanBaru" aria-selected="false">Permohonan Service Baru</button>
+                        aria-controls="permohonanBaru" aria-selected="false">Permohonan Baru</button>
                 </li>
                 <li class="flex-1" role="presentation">
                     <button
                         class="inline-block w-full p-4 border-b-2 rounded-t-lg text-lg font-semibold text-gray-800 dark:text-gray-100 hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300"
                         id="permohonanSelesai-tab" data-tabs-target="#permohonanSelesai" type="button" role="tab"
-                        aria-controls="permohonanSelesai" aria-selected="false">Permohonan Service Selesai</button>
+                        aria-controls="permohonanSelesai" aria-selected="false">Permohonan Selesai</button>
                 </li>
             </ul>
         </div>
@@ -93,6 +93,16 @@ Dashboard
                             <th>
                                 <span class="flex items-center">
                                     Status
+                                    <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
+                                    </svg>
+                                </span>
+                            </th>
+                            <th>
+                                <span class="flex items-center">
+                                    CSO
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -190,11 +200,6 @@ Dashboard
     </div>
 
 </div>
-
-
-<script>
-
-</script>
 
 
 @endsection
