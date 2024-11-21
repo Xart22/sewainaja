@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\CustomerSupport;
 use App\Models\HardwareInformation;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Google\Client as GoogleClient;
+use Illuminate\Support\Facades\Storage;
 
 class CustomerSupportController extends Controller
 {

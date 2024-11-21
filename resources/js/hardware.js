@@ -15,9 +15,6 @@ dataTable.forEach((table) => {
             </button>
             </div>
            
-
-            
-            
             <div class='${options.classes.top} mt-5'>
             ${
                 options.paging && options.perPageSelect

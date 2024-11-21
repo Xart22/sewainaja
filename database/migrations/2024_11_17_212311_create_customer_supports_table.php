@@ -20,8 +20,10 @@ return new class extends Migration
             $table->string('keperluan');
             $table->longText('message');
             $table->bigInteger('responded_by')->unsigned()->nullable();
-            $table->bigInteger('tekhnisi_id')->unsigned()->nullable();
-            $table->string('status')->default('Waiting');
+            $table->bigInteger('teknisi_id')->unsigned()->nullable();
+            $table->string('status_process')->default('Waiting');
+            $table->string('status_cso')->default('Waiting');
+            $table->string('status_teknisi')->nullable();
             $table->time('waktu_respon')->nullable();
             $table->time('waktu_perjalanan')->nullable();
             $table->time('waktu_pengerjaan')->nullable();

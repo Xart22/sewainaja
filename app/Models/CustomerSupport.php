@@ -13,9 +13,17 @@ class CustomerSupport extends Model
     // Status
     const STATUS_WAITING = 'Waiting';
     const STATUS_RESPONDED = 'Responded';
-    const STATUS_WAITING_TECHNICIAN = 'Waiting for Technician';
-    const STATUS_OTW = 'On The Way';
-    const STATUS_REPAIRING = 'Repairing';
+
+    const STATUS_WAITING_FOR_TECHNICIAN = 'Waiting';
+    const STATUS_ACCEPTED_BY_TECHNICIAN = 'Accepted';
+    const STATUS_REJECTED_BY_TECHNICIAN = 'Rejected';
+    const STATUS_TECHNICIAN_ON_THE_WAY = 'On The Way';
+    const STATUS_TECHNICIAN_ARRIVED = 'Arrived';
+    const STATUS_TECHNICIAN_REPAIRING = 'Repairing';
+    const STATUS_TECHNICIAN_DONE = 'Done';
+
+
+
     const STATUS_PROCESS_WAITING_CLOSE = 'Process Waiting Close by Customer';
     const STATUS_DONE = 'Done';
 
@@ -31,6 +39,11 @@ class CustomerSupport extends Model
 
     public function technician()
     {
-        return $this->belongsTo(User::class, 'tekhnisi_id');
+        return $this->belongsTo(User::class, 'teknisi_id');
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(CustomerSupportLog::class, 'customer_support_id');
     }
 }
