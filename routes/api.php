@@ -17,8 +17,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/update-profile', [AuthController::class, 'updateProfile']);
+
+
+
     Route::post('/customer-support/assign-technician', [CustomerSupportController::class, 'assignTechnician'])->name('assign-technician');
     Route::get('/teknisi/get-customer-support', [CustomerSupportController::class, 'getDataTeknisi'])->name('get-customer-support-teknisi');
+    Route::post('/teknisi/update-status-teknisi/{id}', [CustomerSupportController::class, 'updateStatusTeknisi'])->name('update-status-teknisi');
 });
 
 
@@ -26,3 +30,5 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/customer-support', [CustomerSupportController::class, 'getData'])->name('customer-support-data');
 
 Route::get('/hardware-data', [HardwareController::class, 'getData'])->name('hardware-data');
+
+Route::get('/get-teknisi', [CustomerSupportController::class, 'getTeknisi'])->name('get-teknisi');

@@ -97,7 +97,7 @@ class CustomerController extends Controller
                 'pic_installation_phone_number' => $request->customer_pic_installation_phone_number,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'hw_id' => $request->hardware_information,
+                'hw_id' => $request->hardware_information ? $request->hardware_information : Customer::find($id)->hw_id,
                 'contract_start' => $request->contract_start_date,
                 'expired_at' => $request->contract_end_date,
             ]);

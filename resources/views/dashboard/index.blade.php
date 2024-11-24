@@ -46,7 +46,7 @@ Dashboard
           }
         },
         isOpen() { return this.show === true },
-        selectedName() { return this.selected ? this.selected.hw_name + ' ' + this.selected.hw_type : this.filter; },
+        selectedName() { return this.selected ? this.selected.name  : this.filter; },
         classOption(id, index) {
           const isSelected = this.selected ? (id == this.selected.id) : false;
           const isFocused = (index == this.focusedOptionIndex);
@@ -57,22 +57,20 @@ Dashboard
           };
         },
         fetchOptions() {
-          fetch('{{ route('hardware-data') }}')
+          fetch('{{ route('get-teknisi') }}')
             .then(response => response.json())
-            .then(data => this.options = data);
+            .then(data => this.options = data.data);
         },
         filteredOptions() {
           return this.options
             ? this.options.filter(option => {
-                return (option.hw_name.toLowerCase().indexOf(this.filter) > -1) 
-                  || (option.hw_type.toLowerCase().indexOf(this.filter) > -1)
-                  || (option.hw_brand.toLowerCase().indexOf(this.filter) > -1)
+                return (option.name.toLowerCase().indexOf(this.filter) > -1) 
             })
            : {}
         },
         onOptionClick(index) {
           this.focusedOptionIndex = index;
-          document.getElementById('hardware_id').value = this.filteredOptions()[index].id;
+          document.getElementById('user_id').value = this.filteredOptions()[index].id;
           this.selectOption();
         },
         selectOption() {
@@ -461,10 +459,12 @@ Dashboard
 
 
                     <div class="bg-white w-full hidden" id="assignTechnician">
-                        <div>
+                        <form action="{{ route('assign-technician-web') }}" method="POST">
+                            @csrf
                             <label class="text-gray-700 dark:text-gray-200 font-semibold" for="hardware_name">Tugaskan
                                 Teknisi</label>
-                            <input type="hidden" name="hardware_id" id="hardware_id">
+                            <input type="hidden" name="user_id" id="user_id">
+                            <input type="hidden" name="ticket_id" id="ticket_id">
                             <div class="flex flex-col items-center">
                                 <div class="w-full  flex flex-col items-center">
                                     <div class="w-full">
@@ -508,17 +508,10 @@ Dashboard
                                                             :aria-selected="focusedOptionIndex === index">
                                                             <div
                                                                 class="flex w-full items-center p-2 pl-2 border-transparent border-l-2 relative hover:border-teal-100">
-                                                                <div class="w-6 flex flex-col items-center">
-                                                                    <div
-                                                                        class="flex relative w-5 h-5  justify-center items-center m-1 mr-2  mt-1 rounded-full ">
-                                                                        <img class="rounded-full" alt="A"
-                                                                            x-bind:src="option.hw_image">
-                                                                    </div>
-                                                                </div>
+
                                                                 <div class="w-full items-center flex">
                                                                     <div class="mx-2 -mt-1">
-                                                                        <span
-                                                                            x-text="option.hw_name + ' | ' + option.hw_type">
+                                                                        <span x-text="option.name">
                                                                         </span>
 
                                                                     </div>
@@ -532,10 +525,38 @@ Dashboard
                                     </div>
                                 </div>
                             </div>
-
-                        </div>
+                            <button type="submit"
+                                class=" mt-5 text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
+                                Tugaskan Teknisi
+                            </button>
+                        </form>
                     </div>
                 </div>
+                <div class="bg-[#F9FAFB]">
+                    <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Logs</h1>
+                    <div class="overflow-x-auto">
+                        <table class="table-auto w-full border">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        User
+                                    </th>
+
+                                    <th>
+                                        Message
+                                    </th>
+                                    <th>
+                                        Date Time
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="logs" class="text-center">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
 
 
             </div>
@@ -547,7 +568,7 @@ Dashboard
         const prosesModal = document.getElementById('prosesModal');
         const modal = new Modal(prosesModal); 
         modal.show();
-
+        document.getElementById('ticket_id').value = data.id;
         document.getElementById('idTicket').innerText = data.no_ticket;
         document.getElementById('namaPemohon').innerText = data.nama_pelapor;
         document.getElementById('noWa').innerText = data.no_wa_pelapor;
@@ -570,6 +591,23 @@ Dashboard
         document.getElementById('hardwareBrand').innerText = data.customer.hardware.hw_brand;
         document.getElementById('hardwareSerialNumber').innerText = data.customer.hardware.hw_serial_number;
         document.getElementById('hardwareImage').src = data.customer.hardware.hw_image;
+        document.getElementById('logs').innerHTML = '';
+        data.logs.forEach((log)=>{
+                const tr = document.createElement('tr');
+                const tdUser = document.createElement('td');
+            
+                const tdMessage = document.createElement('td');
+                const tdDateTime = document.createElement('td');
+                tdUser.innerText = log.user.name;
+
+                tdMessage.innerText = log.message;
+                tdDateTime.innerText = formatDate(log.created_at);
+                tr.appendChild(tdUser);
+     
+                tr.appendChild(tdMessage);
+                tr.appendChild(tdDateTime);
+                document.getElementById('logs').appendChild(tr);
+            });
 
         if(data.status_teknisi == '' || data.status_teknisi == null){
             document.getElementById('assignTechnician').classList.remove('hidden');
@@ -583,7 +621,7 @@ Dashboard
             document.getElementById('detailTeknisi').classList.remove('hidden');
             document.getElementById('namaTeknisi').innerText = data.technician.name;
             document.getElementById('noWaTeknisi').innerText = data.technician.phone_number ? data.technician.phone_number : '-';
-           await getALocationAddress(data.technician.latitude,data.technician.longitude);
+           await getALocationAddress(data.technician.latitude,data.technician.longitude);  
         }
     }
     };
@@ -598,7 +636,7 @@ Dashboard
 
     const formatDate = (date) => {
         const d = new Date(date);
-        return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+        return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
     };
     </script>
 </div>

@@ -59,11 +59,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const formattedDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
             const action = `
                     <div class="flex justify-start space-x-2">
-                           <button onclick='tes(${JSON.stringify(
-                               permohonan
-                           )})' class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" type="button">
-                                Proses
-                            </button>
+                        ${
+                            permohonan.status_cso === "Responded"
+                                ? `<button onclick='tes(${JSON.stringify(
+                                      permohonan
+                                  )})' class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" type="button">
+                                Detail
+                            </button>`
+                                : ""
+                        }
                             <a href="/customer-support/send/${
                                 permohonan.id
                             }" target="_blank"
@@ -112,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 permohonan.cso ? permohonan.cso.name : "",
                 permohonan.technician ? permohonan.technician.name : "",
                 statusTechnician,
-                "",
+                permohonan.status_process ?? "",
                 action,
             ]);
         });

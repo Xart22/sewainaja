@@ -41,9 +41,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('/master-data/customer/{id}', [CustomerController::class, 'destroy'])->name('master-data.customer.destroy');
 
     Route::get('/customer-support/send/{id}', [CustomerSupportController::class, 'sendChatWeb'])->name('send-chat');
+    Route::post('/customer-support/assign-teknisi', [CustomerSupportController::class, 'assignTechnician'])->name('assign-technician-web');
+
+
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+
+Route::get('/tes', [CustomerSupportController::class, 'tes']);
 
 Route::get('/customer-support/{hased}', [CustomerSupportController::class, 'customerOnline'])->name('customer-online');
 

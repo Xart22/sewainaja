@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerSupport;
+use App\Models\CustomerSupportLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +26,15 @@ class CustomerSupportController extends Controller
             'data' => $newRequest,
             'count' => $countNewRequest,
             'done' => $requestDone
+        ]);
+    }
+
+    public function getTeknisi()
+    {
+        $data = User::where('role', 'Teknisi')->get();
+
+        return response()->json([
+            'data' => $data,
         ]);
     }
 
@@ -74,6 +84,13 @@ class CustomerSupportController extends Controller
                     'notification' => [
                         'title' => $title,
                         'body' => $message,
+
+                    ],
+                    "android" => [
+                        "notification" => [
+                            "sound" => "notification",
+                            "channel_id" => "instant_notification_channel_id"
+                        ]
                     ],
                 ],
             ];
@@ -90,7 +107,17 @@ class CustomerSupportController extends Controller
 
             $data->status_teknisi = 'Waiting';
             $data->teknisi_id = $request->teknisi_id;
+            $data->status_process = 'Process Waiting Close by Customer';
             $data->save();
+
+            CustomerSupportLog::create(
+                [
+                    'customer_support_id' => $data->id,
+                    'user_id' => Auth::user()->id,
+                    'status' => 'Success',
+                    'message' => Auth::user()->name . ' assign teknisi ' . $teknisi->name . ' to ticket ' . $data->no_ticket,
+                ]
+            );
 
             return response()->json([
                 'message' => 'Data updated',
@@ -99,6 +126,102 @@ class CustomerSupportController extends Controller
             return response()->json([
                 'message' => 'Failed to assign technician',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateStatusTeknisi(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'status' => 'required',
+            ]);
+
+            $data = CustomerSupport::find($id);
+
+            if (!$data) {
+                return response()->json([
+                    'message' => 'Data not found',
+                ], 404);
+            }
+            if ($request->status == 'Di Tolak') {
+                $data->status_teknisi = null;
+                $data->teknisi_id = null;
+                CustomerSupportLog::create(
+                    [
+                        'customer_support_id' => $data->id,
+                        'user_id' => Auth::user()->id,
+                        'status' => 'Failed',
+                        'message' => Auth::user()->name . ' Menolak pekerjaan ' . $data->no_ticket . ' dengan alasan ' . $request->message,
+                    ]
+                );
+            }
+
+            if ($request->status == 'Menuju Lokasi') {
+                $data->status_teknisi = 'On The Way';
+                $data->waktu_respon_teknisi = now();
+                CustomerSupportLog::create(
+                    [
+                        'customer_support_id' => $data->id,
+                        'user_id' => Auth::user()->id,
+                        'status' => 'Success',
+                        'message' => Auth::user()->name . ' Menuju lokasi',
+                    ]
+                );
+            }
+
+            if ($request->status == 'Tiba di Lokasi') {
+                $data->status_teknisi = 'Arrived';
+                $data->waktu_tiba = now();
+                $data->waktu_perjalanan = now()->diffInMinutes($data->waktu_respon_teknisi);
+                CustomerSupportLog::create(
+                    [
+                        'customer_support_id' => $data->id,
+                        'user_id' => Auth::user()->id,
+                        'status' => 'Success',
+                        'message' => Auth::user()->name . ' Tiba di lokasi',
+                    ]
+                );
+            }
+
+            if ($request->status == 'Mulai Pengerjaan') {
+                $data->status_teknisi = 'Working';
+                $data->waktu_pengerjaan = now();
+                CustomerSupportLog::create(
+                    [
+                        'customer_support_id' => $data->id,
+                        'user_id' => Auth::user()->id,
+                        'status' => 'Success',
+                        'message' => Auth::user()->name . ' Mulai Pengerjaan',
+                    ]
+                );
+            }
+
+            if ($request->status == 'Selesai Pengerjaan') {
+                $data->status_teknisi = 'Done';
+                $data->waktu_selesai = now();
+                $data->waktu_pengerjaan = now()->diffInMinutes($data->waktu_pengerjaan);
+                $data->status_process = 'Waiting Close by Customer';
+                $data->save();
+                CustomerSupportLog::create(
+                    [
+                        'customer_support_id' => $data->id,
+                        'user_id' => Auth::user()->id,
+                        'status' => 'Success',
+                        'message' => Auth::user()->name . ' Selesai Pengerjaan',
+                    ]
+                );
+            }
+
+            $data->save();
+
+            return response()->json([
+                'message' => 'Data updated',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Failed to update status',
+                'error' => $th->getMessage(),
             ], 500);
         }
     }

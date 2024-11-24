@@ -44,6 +44,6 @@ class CustomerSupport extends Model
 
     public function logs()
     {
-        return $this->hasMany(CustomerSupportLog::class, 'customer_support_id');
+        return $this->hasMany(CustomerSupportLog::class, 'customer_support_id')->with('user');
     }
 }
