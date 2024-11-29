@@ -24,15 +24,15 @@ return new class extends Migration
             $table->string('status_process')->default('Waiting');
             $table->string('status_cso')->default('Waiting');
             $table->string('status_teknisi')->nullable();
-            $table->time('waktu_respon_cso')->nullable();
-            $table->time('waktu_respon_teknisi')->nullable();
+            $table->datetime('waktu_respon_cso')->nullable();
+            $table->datetime('waktu_respon_teknisi')->nullable();
             $table->string('waktu_perjalanan')->nullable();
-            $table->time('waktu_tiba')->nullable();
+            $table->datetime('waktu_tiba')->nullable();
             $table->string('waktu_pengerjaan')->nullable();
-            $table->time('waktu_selesai')->nullable();
+            $table->datetime('waktu_selesai')->nullable();
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
             $table->foreign('responded_by')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('tekhnisi_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('teknisi_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -1,18 +1,27 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\CustomerSupport;
 use Illuminate\Http\Request;
 
-class KeluhanController extends Controller
+class CustomerSupportDataController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index($start_date, $end_date)
     {
-        //
+
+        $start_date = date('Y-m-d', strtotime($start_date));
+        $end_date = date('Y-m-d', strtotime($end_date));
+
+        $data = CustomerSupport::whereBetween('created_at', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])->with(['customer', 'teknisi', 'cso', 'logs'])->get();
+        return view('customer-support.data.index', [
+            'data' => $data,
+            'start_date' => $start_date,
+            'end_date' => $end_date
+        ]);
     }
 
     /**

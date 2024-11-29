@@ -1,20 +1,14 @@
 import { DataTable } from "simple-datatables";
 
-const dataTable = [document.querySelector("#tableHardware")];
+const dataTable = [document.querySelector("#tableUser")];
 
 dataTable.forEach((table) => {
     if (table) {
         new DataTable(table, {
             template: (options, dom) => `
-            <div class='flex space-x-2'>
-             <a href="/admin/master-data/hardware/create" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-            Add Hardware
-            </a>
-            <button data-modal-target="default-modal" data-modal-toggle="default-modal" class="block text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">
-            Copy Hardware
-            </button>
-            </div>
-           
+                <a href="/admin/manage-user/create"
+            class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Add User</a>
+            
             <div class='${options.classes.top} mt-5'>
             ${
                 options.paging && options.perPageSelect

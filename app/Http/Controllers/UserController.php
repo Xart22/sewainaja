@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -11,7 +12,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        return view('users.index', [
+            'users' => User::all(),
+        ]);
     }
 
     /**
@@ -19,7 +22,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        return view('users.create');
     }
 
     /**
@@ -27,7 +30,21 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $request->validate([
+                'nip' => 'required|unique:users',
+                'name' => 'required',
+                'role' => 'required',
+                'password' => 'required',
+                'phone_number' => 'required',
+            ]);
+            User::create($request->except('_token'));
+
+            return redirect()->route('manage-user.index')->with('success', 'User created successfully');
+        } catch (\Throwable $th) {
+            dd($th->getMessage());
+            return redirect()->back()->with('error', $th->getMessage());
+        }
     }
 
     /**
@@ -35,7 +52,9 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return view('users.show', [
+            'user' => User::findOrFail($id),
+        ]);
     }
 
     /**
@@ -43,7 +62,9 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        return view('users.edit', [
+            'user' => User::findOrFail($id),
+        ]);
     }
 
     /**
@@ -51,7 +72,27 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $request->validate([
+                'nip' => 'required|unique:users,nip,' . $id,
+                'name' => 'required',
+                'role' => 'required',
+                'phone_number' => 'required',
+            ]);
+            if ($request->password) {
+                $request->validate([
+                    'password' => 'required',
+                ]);
+            }
+
+            $user = User::findOrFail($id);
+            $user->update($request->except('_token'));
+
+
+            return redirect()->route('manage-user.index')->with('success', 'User updated successfully');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', $th->getMessage());
+        }
     }
 
     /**
@@ -59,6 +100,12 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            User::findOrFail($id)->delete();
+
+            return redirect()->route('manage-user.index')->with('success', 'User deleted successfully');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', $th->getMessage());
+        }
     }
 }

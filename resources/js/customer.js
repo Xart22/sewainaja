@@ -12,7 +12,8 @@ dataTable.forEach((table) => {
                         const shortAddress =
                             data[0].data.length > 50
                                 ? data[0].data.substring(0, 50) + "..."
-                                : data;
+                                : data[0].data;
+
                         return `<span title="${data[0].data}">${shortAddress}</span>`;
                     },
                 },
@@ -22,7 +23,7 @@ dataTable.forEach((table) => {
                 },
             ],
             template: (options, dom) => `
-                <a href="/master-data/customer/create"
+                <a href="/admin/master-data/customer/create"
             class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">Add Customer</a>
             
             <div class='${options.classes.top} mt-5'>

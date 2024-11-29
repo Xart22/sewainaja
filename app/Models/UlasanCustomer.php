@@ -5,22 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CustomerSupportLog extends Model
+class UlasanCustomer extends Model
 {
     use HasFactory;
     protected $guarded = [];
 
-    protected $casts = [
-        'created_at' => 'datetime:Y-m-d H:i:s',
-        'updated_at' => 'datetime:Y-m-d H:i:s',
-    ];
+
     public function customerSupport()
     {
         return $this->belongsTo(CustomerSupport::class);
     }
 
-    public function user()
+    public function cso()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'cso_id');
+    }
+
+    public function teknisi()
+    {
+        return $this->belongsTo(User::class, 'teknisi_id');
     }
 }

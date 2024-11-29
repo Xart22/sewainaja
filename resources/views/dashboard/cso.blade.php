@@ -4,7 +4,7 @@ Dashboard
 @endsection
 
 @section('header')
-@vite(['resources/js/Dashboard.js'])
+@vite(['resources/js/Dashboard.js', 'resources/js/tracking.js'])
 
 <style>
     .top-100 {
@@ -20,6 +20,16 @@ Dashboard
     }
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+
+@if (session('login'))
+<script>
+    window.onload = () => {
+        const welcomeModal = document.getElementById('welcomeModal');
+        const modal = new Modal(welcomeModal);
+        modal.show();
+    }
+</script>
+@endif
 <script>
     function selectConfigs() {
     return {
@@ -154,7 +164,7 @@ Dashboard
 
                             <th data-type="date" data-format="YYYY/DD/MM">
                                 <span class="flex items-center">
-                                    ID TIKET
+                                    NO TIKET
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -272,7 +282,7 @@ Dashboard
 
                             <th data-type="date" data-format="YYYY/DD/MM">
                                 <span class="flex items-center">
-                                    ID TIKET
+                                    NO TIKET
                                     <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -387,7 +397,7 @@ Dashboard
 
     <div id="prosesModal" tabindex="-1" aria-hidden="true"
         class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="relative p-4 w-full md:w-1/2 mx-auto">
+        <div class="relative p-4  w-1/2 mx-auto">
             <!-- Modal content -->
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 p-4 md:p-5">
                 <!-- Modal body -->
@@ -455,11 +465,16 @@ Dashboard
                         <p class="text-base text-gray-600" id="noWaTeknisi"></p>
                         <p class="text-lg font-bold">Lokasi Teknisi</p>
                         <p class="text-base text-gray-600" id="lokasiTeknisi"></p>
+                        <button type="button" data-modal-target="trackModal" data-modal-toggle="trackModal"
+                            id="trackTeknisi"
+                            class="text-white mt-3 bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
+                            Track Teknisi
+                        </button>
                     </div>
 
 
-                    <div class="bg-white w-full hidden" id="assignTechnician">
-                        <form action="{{ route('assign-technician-web') }}" method="POST">
+                    <div class="bg-white w-full hidden" id="assignteknisi">
+                        <form action="{{ route('assign-teknisi-web') }}" method="POST">
                             @csrf
                             <label class="text-gray-700 dark:text-gray-200 font-semibold" for="hardware_name">Tugaskan
                                 Teknisi</label>
@@ -534,7 +549,7 @@ Dashboard
                 </div>
                 <div class="bg-[#F9FAFB]">
                     <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Logs</h1>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-y-auto h-96">
                         <table class="table-auto w-full border">
                             <thead>
                                 <tr>
@@ -563,6 +578,40 @@ Dashboard
 
         </div>
     </div>
+
+
+    <div id="welcomeModal" tabindex="-1" aria-hidden="true"
+        class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto h-[calc(100%-1rem)] max-h-full">
+        <div class="relative w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 p-3">
+                <div class="p-6 space-y-6">
+                    <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                        Welcome back, {{ Auth::user()->name }}!
+                    </p>
+                </div>
+                <button data-modal-hide="welcomeModal" type="button"
+                    class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800 w-full">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="trackModal" tabindex="-1"
+        class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative w-full max-w-7xl max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 p-3">
+
+                <!-- Modal body -->
+                <iframe id="map" class="w-full h-96" src="{{route('tracking')}}" frameborder="0"></iframe>
+                <!-- Modal footer -->
+                <button data-modal-hide="trackModal" type="button"
+                    class="text-white w-full mt-2 bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                    Close</button>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         const tes =async (data) => {
         const prosesModal = document.getElementById('prosesModal');
@@ -598,7 +647,7 @@ Dashboard
             
                 const tdMessage = document.createElement('td');
                 const tdDateTime = document.createElement('td');
-                tdUser.innerText = log.user.name;
+                tdUser.innerText = log.user ? log.user.name : '-';
 
                 tdMessage.innerText = log.message;
                 tdDateTime.innerText = formatDate(log.created_at);
@@ -610,19 +659,26 @@ Dashboard
             });
 
         if(data.status_teknisi == '' || data.status_teknisi == null){
-            document.getElementById('assignTechnician').classList.remove('hidden');
+            document.getElementById('assignteknisi').classList.remove('hidden');
             document.getElementById('detailTeknisi').classList.add('hidden');
             
         }else{
        
         if(data.status_teknisi == 'Waiting' || data.status_teknisi == 'Accepted' || data.status_teknisi == 'On The Way' || data.status_teknisi == 'Arrived' || data.status_teknisi == 'Repairing' || data.status_teknisi == 'Done'){
-
-            document.getElementById('assignTechnician').classList.add('hidden');
+            document.getElementById('trackTeknisi').classList.add('hidden');
+            document.getElementById('assignteknisi').classList.add('hidden');
             document.getElementById('detailTeknisi').classList.remove('hidden');
-            document.getElementById('namaTeknisi').innerText = data.technician.name;
-            document.getElementById('noWaTeknisi').innerText = data.technician.phone_number ? data.technician.phone_number : '-';
-           await getALocationAddress(data.technician.latitude,data.technician.longitude);  
+            document.getElementById('namaTeknisi').innerText = data.teknisi.name;
+            document.getElementById('noWaTeknisi').innerText = data.teknisi.phone_number ?? '-';
+            document.getElementById('user_id').value = data.teknisi.id;
+         
+           await getALocationAddress(data.teknisi.latitude,data.teknisi.longitude);  
         }
+        if(data.status_teknisi == 'On The Way'){
+            document.getElementById('trackTeknisi').classList.remove('hidden');
+            document.getElementById('map').src = `{{route('tracking')}}?id=${data.no_ticket}`;
+        }
+        
     }
     };
 
@@ -632,8 +688,7 @@ Dashboard
         .then(data => {
             document.getElementById('lokasiTeknisi').innerText = data.display_name;
         });
-    }
-
+    };
     const formatDate = (date) => {
         const d = new Date(date);
         return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;

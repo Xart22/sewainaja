@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('customer_support_logs', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('customer_support_id')->unsigned();
-            $table->bigInteger('user_id')->unsigned();
+            $table->bigInteger('user_id')->unsigned()->nullable();
             $table->string('status');
             $table->text('message');
             $table->foreign('customer_support_id')->references('id')->on('customer_supports')->onDelete('cascade');

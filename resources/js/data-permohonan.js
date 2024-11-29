@@ -1,20 +1,16 @@
 import { DataTable } from "simple-datatables";
 
-const dataTable = [document.querySelector("#tableHardware")];
+document.addEventListener("DOMContentLoaded", () => {
+    let tableData = document.querySelector("#tableData");
 
-dataTable.forEach((table) => {
-    if (table) {
-        new DataTable(table, {
+    if (tableData) {
+        tableData = new DataTable("#tableData", {
+            searchable: true,
+            fixedHeight: true,
             template: (options, dom) => `
-            <div class='flex space-x-2'>
-             <a href="/admin/master-data/hardware/create" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-            Add Hardware
-            </a>
-            <button data-modal-target="default-modal" data-modal-toggle="default-modal" class="block text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">
-            Copy Hardware
-            </button>
-            </div>
-           
+        <input type="date" class="border border-gray-300 rounded-md p-1" id="dateFrom" placeholder="From">
+        <input type="date" class="border border-gray-300 rounded-md p-1" id="dateTo" placeholder="To">
+        <a class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600" id="btnFilter">Filter</a>
             <div class='${options.classes.top} mt-5'>
             ${
                 options.paging && options.perPageSelect
@@ -48,8 +44,23 @@ dataTable.forEach((table) => {
                     ? `<div class='${options.classes.info}'></div>`
                     : ""
             }
-            <nav class='${options.classes.pagination}'></nav>
         </div>`,
         });
+
+        // Tambahkan event listener untuk input tanggal
+        document
+            .getElementById("dateFrom")
+            .addEventListener("change", filterDate);
+        document
+            .getElementById("dateTo")
+            .addEventListener("change", filterDate);
     }
+
+    // Fungsi filterDate
 });
+const filterDate = () => {
+    let dateFrom = document.getElementById("dateFrom").value;
+    let dateTo = document.getElementById("dateTo").value;
+
+    console.log(dateFrom, dateTo); // Debugging: Tampilkan nilai input tanggal di konsol
+};

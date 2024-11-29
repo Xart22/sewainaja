@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('lokasi_kerja')->nullable();
             $table->string('latitude')->nullable();
             $table->string('longitude')->nullable();
-            $table->string('fcmtoken')->nullable();
+            $table->string('fcm_token')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
