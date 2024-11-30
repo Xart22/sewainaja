@@ -7,7 +7,30 @@ Hardware
 
 @section('header')
 @vite(['resources/js/hardware.js'])
+<script>
+    function downloadQRCode(hw_name, hw_sn) {
+    const div = document.getElementById('qrCode');
+    const qrCode = div.querySelector('svg');
+    const svgData = new XMLSerializer().serializeToString(qrCode);
 
+    const canvas = document.createElement("canvas");
+    const svgSize = qrCode.viewBox.baseVal.width;
+    canvas.width = svgSize;
+    canvas.height = svgSize;
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+    img.onload = function () {
+        ctx.drawImage(img, 0, 0, svgSize, svgSize);
+        const pngFile = canvas.toDataURL("image/png");
+        const downloadLink = document.createElement("a");
+        downloadLink.href = pngFile;
+        downloadLink.download = `${hw_name}-${hw_sn}.png`;
+        downloadLink.click();
+    };
+    }
+
+</script>
 @endsection
 
 
@@ -65,11 +88,12 @@ Hardware
         </div>
         <div class="mt-4 flex justify-around items-center flex-col md:flex-row">
             <img src=" {{ $hardware->hw_image }}" alt="{{ $hardware->hw_name }}" class="h-52 object-cover">
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col items-center" id="qrCode">
                 QR Code
                 {{$qrCode}}
 
             </div>
+
 
         </div>
         <div class="mt-4">
@@ -78,10 +102,11 @@ Hardware
                 class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">{{ $hardware->hw_description }}</textarea>
         </div>
         <div class="mt-3 flex  space-x-2">
-            <a target="_blank" href=" "
+            <button type="button"
+                onclick="downloadQRCode('{{ $hardware->hw_name }}','{{ $hardware->hw_serial_number }}')"
                 class="mt-3 text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                 Donwload QR Code
-            </a>
+            </button>
             <a href="{{ route('master-data.hardware.edit', $hardware->id) }}"
                 class="mt-3 text-white bg-[#F59E0B] hover:bg-yellow-800 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800">
                 Edit

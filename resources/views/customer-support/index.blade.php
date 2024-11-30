@@ -76,8 +76,8 @@
 
 <body class="font-sans antialiased dark:bg-black dark:text-white/50 ">
 
-    <div class="flex flex-col justify-center p-5 h-1/2 pb-20 bg-origin-padding border border-red-500 md:h-1/3 md:flex-row md:justify-around md:items-center bg-[#2943D1]"
-        style="clip-path: polygon(50% 0%, 100% 0, 100% 35%, 100% 100%, 50% 86%, 45% 80%, 40% 82%, 35% 80%, 30% 82%, 26% 80%, 50% 80%,  0 100%, 0% 35%, 0 0);">
+    <div class="flex flex-col justify-center p-5 h-1/2 pb-20 bg-origin-padding   md:h-1/3 md:flex-row md:justify-around md:items-center md:space-x-5 bg-cover bg-center bg-no-repeat"
+        style="background-image: url('{{ asset('assets/img/bg-landing.png') }}');">
         <img src=" {{ asset('assets/logo/sewainaja-white.png') }}" alt="Sewainaja" class="w-36 md:w-72" />
         <div class=" mt-2 text-white">
             <h1 class=" font-bold md:text-center md:text-2xl text-xl">
