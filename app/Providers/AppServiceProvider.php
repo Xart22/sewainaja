@@ -2,8 +2,9 @@
 
 namespace App\Providers;
 
-use App\Services\FcmService;
+
 use Illuminate\Support\ServiceProvider;
+use App\Services\FcmService;
 
 class AppServiceProvider extends ServiceProvider
 {
