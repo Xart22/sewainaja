@@ -4,7 +4,7 @@ Dashboard
 @endsection
 
 @section('header')
-@vite(['resources/js/Dashboard.js', 'resources/js/tracking.js'])
+@vite(['resources/js/tracking.js'])
 
 <style>
     .top-100 {
