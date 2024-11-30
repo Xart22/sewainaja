@@ -86,7 +86,11 @@ class UserController extends Controller
             }
 
             $user = User::findOrFail($id);
-            $user->update($request->except('_token'));
+            if ($request->password) {
+                $user->update($request->except('_token'));
+            } else {
+                $user->update($request->except('_token', 'password'));
+            }
 
 
             return redirect()->route('manage-user.index')->with('success', 'User updated successfully');
@@ -102,7 +106,6 @@ class UserController extends Controller
     {
         try {
             User::findOrFail($id)->delete();
-
             return redirect()->route('manage-user.index')->with('success', 'User deleted successfully');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', $th->getMessage());

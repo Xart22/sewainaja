@@ -108,7 +108,7 @@ class CustomerSupportController extends Controller
 
             $data->status_teknisi = 'Waiting';
             $data->teknisi_id = $request->teknisi_id;
-            $data->status_process = 'Process Waiting Close by Customer';
+            $data->status_process = 'Waiting Close by Customer';
             $data->save();
 
             CustomerSupportLog::create(

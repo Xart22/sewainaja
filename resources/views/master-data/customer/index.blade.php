@@ -132,7 +132,7 @@ Customer
                                 class="bg-yellow-300 hover:bg-yellow-400 text-white font-bold py-2 px-4 rounded-full">
                                 Edit
                             </a>
-                            <form action="" method="POST">
+                            <form action="{{route('master-data.customer.destroy', $customer->id)}}" method="post">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"

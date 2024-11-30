@@ -8,6 +8,20 @@ Data Permohonan
 @section('header')
 @vite(['resources/js/data-permohonan.js'])
 
+
+<script>
+    const data = @json($data);
+document.addEventListener('DOMContentLoaded', function () {
+    const btnexport = document.getElementById('btnexport');
+    btnexport.addEventListener('click', async () => {
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        const url = `/admin/data-permohonan-export/${dateFrom}/${dateTo}`;
+        window.open(url, '_blank').focus();
+        
+    });
+});
+</script>
 @endsection
 
 
@@ -18,6 +32,12 @@ Data Permohonan
 <div class="mt-14">
     <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Data Permohonan</h1>
 
+    <input type="hidden" id="start_date" value="{{ $start_date }}">
+    <input type="hidden" id="end_date" value="{{ $end_date }}">
+    <input type="date" class="border border-gray-300 rounded-md p-1" id="dateFrom" placeholder="From">
+    <input type="date" class="border border-gray-300 rounded-md p-1" id="dateTo" placeholder="To">
+    <button class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600" id="btnFilter">Filter</button>
+    <button class="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600" id="btnexport">Export</button>
     <div class="bg-white rounded-lg shadow-lg dark:bg-gray-800  p-5 mt-5">
 
         <table id="tableData" class="table-auto w-full">
@@ -125,7 +145,9 @@ Data Permohonan
                             </svg>
                         </span>
                     </th>
-
+                    <th>
+                        Created At
+                    </th>
                     <th>
                         Respon CSO
                     </th>
@@ -148,26 +170,7 @@ Data Permohonan
                 </tr>
             </thead>
             <tbody>
-                @foreach ($data as $item)
-                <tr>
-                    <td>{{ $item->no_ticket }}</td>
-                    <td>{{ $item->created_at }}</td>
-                    <td>{{ $item->nama_pelapor }}</td>
-                    <td>{{ $item->no_wa_pelapor }}</td>
-                    <td>{{ $item->keperluan }}</td>
-                    <td>{{ $item->status_cso }}</td>
-                    <td>{{ $item->cso->name }}</td>
-                    <td>{{ $item->teknisi->name }}</td>
-                    <td>{{ $item->status_teknisi }}</td>
-                    <td>{{ $item->status_process}}</td>
-                    <td>{{ $item->waktu_respon_cso }}</td>
-                    <td>{{ $item->waktu_respon_teknisi }}</td>
-                    <td>{{ $item->waktu_perjalanan }}</td>
-                    <td>{{ $item->waktu_tiba }}</td>
-                    <td>{{ $item->waktu_pengerjaan }}</td>
-                    <td>{{ $item->waktu_selesai }}</td>
-                </tr>
-                @endforeach
+
 
 
             </tbody>
@@ -175,8 +178,4 @@ Data Permohonan
     </div>
 
 </div>
-
-
-
-
 @endsection

@@ -1,66 +1,53 @@
 import { DataTable } from "simple-datatables";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
     let tableData = document.querySelector("#tableData");
 
+    const dataSet = data.map((item) => {
+        return [
+            item.no_ticket,
+            item.created_at,
+            item.nama_pelapor,
+            item.no_wa_pelapor,
+            item.keperluan,
+            item.status_cso,
+            item.cso.name,
+            item.teknisi.name,
+            item.status_teknisi,
+            item.status_process,
+            item.created_at,
+            item.waktu_respon_cso,
+            item.waktu_respon_teknisi,
+            item.waktu_perjalanan,
+            item.waktu_tiba,
+            item.waktu_pengerjaan,
+            item.waktu_selesai,
+        ];
+    });
     if (tableData) {
-        tableData = new DataTable("#tableData", {
-            searchable: true,
-            fixedHeight: true,
-            template: (options, dom) => `
-        <input type="date" class="border border-gray-300 rounded-md p-1" id="dateFrom" placeholder="From">
-        <input type="date" class="border border-gray-300 rounded-md p-1" id="dateTo" placeholder="To">
-        <a class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600" id="btnFilter">Filter</a>
-            <div class='${options.classes.top} mt-5'>
-            ${
-                options.paging && options.perPageSelect
-                    ? `<div class='${options.classes.dropdown}'>
-                    <label>
-                        <select class='${options.classes.selector}'></select> ${options.labels.perPage}
-                    </label>
-                </div>`
-                    : ""
-            }
-            ${
-                options.searchable
-                    ? `<div class='${options.classes.search}'>
-                    <input class='${options.classes.input}' placeholder='${
-                          options.labels.placeholder
-                      }' type='search' title='${options.labels.searchTitle}'${
-                          dom.id ? ` aria-controls="${dom.id}"` : ""
-                      }>
-                </div>`
-                    : ""
-            }
-        </div>
-        <div class='${options.classes.container}'${
-                options.scrollY.length
-                    ? ` style='height: ${options.scrollY}; overflow-Y: auto;'`
-                    : ""
-            }></div>
-        <div class='${options.classes.bottom}'>
-            ${
-                options.paging
-                    ? `<div class='${options.classes.info}'></div>`
-                    : ""
-            }
-        </div>`,
-        });
+        tableData = new DataTable("#tableData");
+    }
+    tableData.insert({ data: dataSet });
+    const filterDate = () => {
+        let dateFrom = document.getElementById("dateFrom").value;
+        let dateTo = document.getElementById("dateTo").value;
+        window.location.href = `/admin/data-permohonan/${dateFrom}/${dateTo}`;
+    };
+    const start = document.getElementById("start_date");
+    const end = document.getElementById("end_date");
 
-        // Tambahkan event listener untuk input tanggal
-        document
-            .getElementById("dateFrom")
-            .addEventListener("change", filterDate);
-        document
-            .getElementById("dateTo")
-            .addEventListener("change", filterDate);
+    const dateFrom = document.getElementById("dateFrom");
+    const dateTo = document.getElementById("dateTo");
+    //set default value
+    dateFrom.value = start.value;
+    dateTo.value = end.value;
+    const btnFilter = document.getElementById("btnFilter");
+
+    if (btnFilter) {
+        btnFilter.addEventListener("click", filterDate);
     }
 
-    // Fungsi filterDate
+    const exportData = () => {
+        window.location.href = `/admin/data-permohonan/export`;
+    };
 });
-const filterDate = () => {
-    let dateFrom = document.getElementById("dateFrom").value;
-    let dateTo = document.getElementById("dateTo").value;
-
-    console.log(dateFrom, dateTo); // Debugging: Tampilkan nilai input tanggal di konsol
-};

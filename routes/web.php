@@ -57,6 +57,7 @@ Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () 
     Route::put('/manage-user/{id}', [UserController::class, 'update'])->name('manage-user.update');
     Route::delete('/manage-user/{id}', [UserController::class, 'destroy'])->name('manage-user.destroy');
     Route::get('/data-permohonan/{start_date}/{end_date}', [CustomerSupportDataController::class, 'index'])->name('data-permohonan.index');
+    Route::get('/data-permohonan-export/{start_date}/{end_date}', [CustomerSupportDataController::class, 'export'])->name('data-permohonan.export');
 });
 
 Route::get('/tracking', [CustomerSupportController::class, 'tracking'])->name('tracking');
