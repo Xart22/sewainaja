@@ -10,12 +10,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void
-    {
-        $this->app->singleton(FcmService::class, function ($app) {
-            return new FcmService();
-        });
-    }
+    public function register(): void {}
 
     /**
      * Bootstrap any application services.
