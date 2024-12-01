@@ -101,8 +101,11 @@ class CustomerController extends Controller
                 'contract_start' => $request->contract_start_date,
                 'expired_at' => $request->contract_end_date,
             ]);
-            HardwareInformation::where('customer_id', $id)->update(['customer_id' => null, 'used_status' => 0]);
-            HardwareInformation::where('id', $request->hardware_information)->update(['customer_id' => $id, 'used_status' => 1]);
+
+            if ($request->hardware_information) {
+                HardwareInformation::where('customer_id', $id)->update(['customer_id' => null, 'used_status' => 0]);
+                HardwareInformation::where('id', $request->hardware_information)->update(['customer_id' => $id, 'used_status' => 1]);
+            }
             DB::commit();
 
             return redirect()->route('master-data.customer.index')->with('success', 'Customer updated successfully');
