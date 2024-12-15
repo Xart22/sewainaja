@@ -4,6 +4,16 @@ document.addEventListener("DOMContentLoaded", function () {
     let tableData = document.querySelector("#tableData");
 
     const dataSet = data.map((item) => {
+        const action = `
+        <div class="flex justify-start space-x-2">
+           <button onclick='detail(${JSON.stringify(
+               item
+           )})' class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" type="button">
+                    Detail
+                </button>   
+        </div>
+
+`;
         return [
             item.no_ticket,
             item.created_at,
@@ -11,8 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
             item.no_wa_pelapor,
             item.keperluan,
             item.status_cso,
-            item.cso.name,
-            item.teknisi.name,
+            item.cso.name ? item.cso.name : "-",
+            item.teknisi.name ? item.teknisi.name : "-",
             item.status_teknisi,
             item.status_process,
             item.created_at,
@@ -22,6 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
             item.waktu_tiba,
             item.waktu_pengerjaan,
             item.waktu_selesai,
+            action,
         ];
     });
     if (tableData) {

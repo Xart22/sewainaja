@@ -167,6 +167,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     <th>
                         Waktu Selesai
                     </th>
+                    <th>
+                        Aksi
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -178,4 +181,26 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
 
 </div>
+
+<div id="detail" tabindex="-1"
+    class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-7xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 p-3">
+            <!-- Modal footer -->
+            <button data-modal-hide="detail" type="button"
+                class="text-white w-full mt-2 bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const detail = (data)=>{
+        const detail = document.getElementById('detail');
+        const modal = new Modal(detail); 
+        modal.show();
+        console.log(data);
+    }
+</script>
 @endsection
