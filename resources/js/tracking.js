@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("id");
-    console.log(id);
 
     const data = await getData();
+    if (!data) {
+        return;
+    }
     const center = [
         (parseFloat(data.data.customer.latitude) +
             parseFloat(data.data.teknisi.latitude)) /
@@ -87,6 +89,7 @@ function updateTeknisiPopup(marker, teknisi, route) {
 const getData = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("id");
+    if (!id) return;
     return await fetch(`/api/tracking/${id}`).then((response) =>
         response.json()
     );
