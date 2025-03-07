@@ -14,6 +14,6 @@ class HardwareInformation extends Model
 
     public function customer()
     {
-        return $this->belongsTo(Customer::class, 'id', 'hw_id');
+        return $this->belongsTo(Customer::class, 'customer_id');
     }
 }

@@ -33,7 +33,7 @@ Customer
                             </svg>
                         </span>
                     </th>
-                    <th data-type="date" data-format="YYYY/DD/MM">
+                    <th data-type="date">
                         <span class="flex items-center">
                             Group Name
                             <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
@@ -109,15 +109,16 @@ Customer
                     <td class="text-sm">{{$customer->address}}</td>
                     <td>
                         <div class="flex flex-col">
-                            <span>Contract Start Date: {{date('d-m-Y', strtotime($customer->start_at))}}</span>
+                            <span>Contract Start Date: {{date('d-m-Y', strtotime($customer->contract_start))}}</span>
                             <span>Contract End Date: {{date('d-m-Y', strtotime($customer->expired_at))}}</span>
-                            @if (date('d', strtotime($customer->expired_at)) - date('d') < 0) <span
-                                class="text-red-500">Expired</span>
-                                @else
-                                <span>Contract Remaining: {{ date('d', strtotime($customer->expired_at)) - date('d') }}
-                                    Days
-                                </span>
-                                @endif
+                            @if (\Carbon\Carbon::now() > $customer->expired_at)
+                            <span class="text-red-500">Expired</span>
+                            @else
+                            <span>Contract Remaining: {{ round(\Carbon\Carbon::now()->diffInDays($customer->expired_at,
+                                false))}}
+                                Days
+                            </span>
+                            @endif
 
                         </div>
                     </td>
