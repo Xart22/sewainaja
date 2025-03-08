@@ -96,7 +96,9 @@
                 <p class="text-white">Informasi Customer</p>
                 <p class="text-white">{{ $data->customer->name }}</p>
             </div>
+            @if ($data->hw_image != null)
             <img src="{{ $data->hw_image }}" alt="{{$data->hw_name}}" class="h-32" />
+            @endif
         </div>
 
         <form action="{{route('customer-support.store') }}" method="POST" class=" mt-5 md:w-1/4 w-full">
