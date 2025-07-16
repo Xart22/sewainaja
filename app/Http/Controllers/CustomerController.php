@@ -34,7 +34,7 @@ class CustomerController extends Controller
         try {
 
             DB::beginTransaction();
-            $id = Customer::create([
+            Customer::create([
                 'group_name' => $request->group_name,
                 'name' => $request->customer_name,
                 'email' => $request->customer_email,
@@ -50,11 +50,7 @@ class CustomerController extends Controller
                 'longitude' => $request->longitude,
                 'contract_start' => $request->contract_start_date,
                 'expired_at' => $request->contract_end_date,
-            ])->id;
-
-            if ($request->hardware_information) {
-                Hardware::whereIn('id', $request->hardware_information)->update(['customer_id' => $id, 'used_status' => 1]);
-            }
+            ]);
 
             DB::commit();
 
@@ -105,23 +101,16 @@ class CustomerController extends Controller
                 'pic_installation_phone_number' => $request->customer_pic_installation_phone_number,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'hw_id' => $request->hardware_information ? $request->hardware_information : Customer::find($id)->hw_id,
                 'contract_start' => $request->contract_start_date,
                 'expired_at' => $request->contract_end_date,
             ]);
-
-            if ($request->hardware_information) {
-                Hardware::whereIn('id', $request->hardware_information)->update(['customer_id' => $id, 'used_status' => 1]);
-            } else {
-                Hardware::where('customer_id', $id)->update(['customer_id' => null, 'used_status' => 0]);
-            }
             DB::commit();
 
             return redirect()->route('master-data.customer.index')->with('success', 'Customer updated successfully');
         } catch (\Throwable $th) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', 'Failed to update customer');
+            return redirect()->back()->with('error', 'Failed to update customer ' . $th->getMessage());
         }
     }
 

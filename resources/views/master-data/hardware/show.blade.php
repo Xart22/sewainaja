@@ -91,7 +91,6 @@ Hardware
             <div class="flex flex-col items-center" id="qrCode">
                 QR Code
                 {{$qrCode}}
-
             </div>
 
 

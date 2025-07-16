@@ -136,6 +136,36 @@ Customer
             </div>
         </div>
         <div id="map" class="w-full h-[450px] mt-5"></div>
+        <div class="mt-5">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">Hardware Assigned</h2>
+            <div class="mt-3">
+                @if($customer->hardware->count() > 0)
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Hardware Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Hardware Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Hardware Serial Number</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                        @foreach($customer->hardware as $hardware)
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $hardware->hw_name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $hardware->hw_type }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $hardware->hw_serial_number }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                @else
+                <p class="text-gray-500">No hardware assigned to this customer.</p>
+                @endif
+            </div>
+        </div>
         <div class="mt-3 flex  space-x-2">
             <a href="{{ route('master-data.customer.edit', $customer->id) }}"
                 class="mt-3 text-white bg-[#F59E0B] hover:bg-yellow-800 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800">

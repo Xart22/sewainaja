@@ -250,4 +250,26 @@ class HardwareController extends Controller
                 ->with('error', 'Failed to import hardware data. ' . $th->getMessage());
         }
     }
+
+    public function assign(Request $request)
+    {
+        $hardware = Hardware::find($request->hardware_id);
+        $hardware->customer_id = $request->customer_id;
+        $hardware->used_status = 1; // Set to used
+        $hardware->save();
+
+        return redirect()->route('master-data.hardware.index')
+            ->with('success', 'Hardware assigned to customer successfully.');
+    }
+
+    public function destroyAssign(string $id)
+    {
+        $hardware = Hardware::find($id);
+        $hardware->customer_id = null;
+        $hardware->used_status = 0; // Set to unused
+        $hardware->save();
+
+        return redirect()->route('master-data.hardware.index')
+            ->with('success', 'Hardware assignment removed successfully.');
+    }
 }

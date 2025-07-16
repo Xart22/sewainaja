@@ -39,6 +39,8 @@ Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () 
     Route::delete('/master-data/hardware/{id}', [HardwareController::class, 'destroy'])->name('master-data.hardware.destroy');
     Route::get('/master-data/hardware/{id}/qr-code', [HardwareController::class, 'qrCode'])->name('master-data.hardware.qr-code');
     Route::post('/master-data/hardware/import', [HardwareController::class, 'import'])->name('master-data.hardware.import');
+    Route::post('/master-data/hardware/assign', [HardwareController::class, 'assign'])->name('master-data.hardware.assign');
+    Route::get('/master-data/hardware/deassign/{id}', [HardwareController::class, 'destroyAssign'])->name('master-data.hardware.deassign');
 
     // master data customer
     Route::get('/master-data/customer', [CustomerController::class, 'index'])->name('master-data.customer.index');

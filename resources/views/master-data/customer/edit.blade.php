@@ -122,40 +122,9 @@ Customer
                         type="text" value="{{ $customer->pic_financial_phone_number }}"
                         class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring number">
                 </div>
-                <div class="col-span-2">
-                    <label class="text-gray-700 dark:text-gray-200" for="hardware_information">
-                        Hardware Information
-                    </label>
 
-                    <select name="hardware_information[]" id="hardware_information" class="block w-full mt-2 text-gray-700 bg-white border rounded-md
-                        dark:bg-gray-800 dark:text-gray-300
-                        focus:border-blue-500 focus:outline-none focus:ring
-                        @if ($hardwares->isEmpty()) border-red-500 @endif">
 
-                        @if (!$customer->hardware->isEmpty())
-                        @foreach ($customer->hardware as $hw)
-                        <option value="{{ $hw->id }}" selected>
-                            {{ $hw->hw_name }} - {{ $hw->hw_type }} - {{ $hw->hw_serial_number }}
-                        </option>
-                        @endforeach
-                        @endif
-
-                        @if (!$hardwares->isEmpty())
-                        <option value="" disabled>Select Hardware</option>
-                        @foreach ($hardwares as $hardware)
-                        <option value="{{ $hardware->id }}">
-                            {{ $hardware->hw_name }} - {{ $hardware->hw_type }} - {{ $hardware->hw_serial_number }}
-                        </option>
-                        @endforeach
-                        @endif
-                    </select>
-
-                    @if ($hardwares->isEmpty())
-                    <span class="text-red-500 mt-2 block">
-                        No Hardware Available. Please Create Hardware First.
-                    </span>
-                    @endif
-                </div>
+   
 
 
                 <div>
