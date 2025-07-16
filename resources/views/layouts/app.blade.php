@@ -242,6 +242,8 @@
 
     {{-- Notif sound --}}
     <audio id="notifSound" src="{{ asset('assets/sound/simple-notification-152054.mp3') }}"></audio>
+
+    @yield('scripts')
 </body>
 
 </html>

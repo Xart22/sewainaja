@@ -16,7 +16,7 @@ Hardware
 
 
 <div class="mt-14">
-    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Create Hardware</h1>
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Edit Hardware</h1>
 
 
     <div class="bg-white rounded-lg shadow-lg dark:bg-gray-800 p-5 mt-5 ">

@@ -30,8 +30,6 @@ return new class extends Migration
             $table->dateTime('contract_start');
             $table->dateTime('expired_at');
             $table->boolean('is_active')->default(true);
-            $table->bigInteger('hw_id')->nullable()->unsigned();
-            $table->foreign('hw_id')->references('id')->on('hardware_information');
             $table->timestamps();
         });
     }

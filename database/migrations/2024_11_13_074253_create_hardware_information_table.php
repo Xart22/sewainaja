@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('hardware_information', function (Blueprint $table) {
+        Schema::create('hardware', function (Blueprint $table) {
             $table->id();
             $table->string('hw_name')->nullable();
             $table->string('hw_type');

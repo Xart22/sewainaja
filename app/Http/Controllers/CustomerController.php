@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use App\Models\HardwareInformation;
+use App\Models\Hardware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,7 +23,7 @@ class CustomerController extends Controller
     public function create()
     {
 
-        return view('master-data.customer.create', ["hardwares" => HardwareInformation::where('customer_id', null)->get()]);
+        return view('master-data.customer.create', ["hardwares" => Hardware::where('customer_id', null)->get()]);
     }
 
     /**
@@ -32,6 +32,7 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         try {
+
             DB::beginTransaction();
             $id = Customer::create([
                 'group_name' => $request->group_name,
@@ -47,15 +48,21 @@ class CustomerController extends Controller
                 'pic_installation_phone_number' => $request->customer_pic_installation_phone_number,
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'hw_id' => $request->hardware_information,
                 'contract_start' => $request->contract_start_date,
                 'expired_at' => $request->contract_end_date,
             ])->id;
-            HardwareInformation::where('id', $request->hardware_information)->update(['customer_id' => $id, 'used_status' => 1]);
+
+            if ($request->hardware_information) {
+                Hardware::whereIn('id', $request->hardware_information)->update(['customer_id' => $id, 'used_status' => 1]);
+            }
+
             DB::commit();
 
             return redirect()->route('master-data.customer.index')->with('success', 'Customer created successfully');
         } catch (\Throwable $th) {
+            DB::rollBack();
+            dd($th);
+
             return redirect()->back()->with('error', 'Failed to create customer');
         }
     }
@@ -73,7 +80,8 @@ class CustomerController extends Controller
      */
     public function edit(string $id)
     {
-        return view('master-data.customer.edit', ['customer' => Customer::find($id), "hardwares" => HardwareInformation::where('customer_id', null)->get()]);
+
+        return view('master-data.customer.edit', ['customer' => Customer::find($id), "hardwares" => Hardware::where('customer_id', null)->get()]);
     }
 
     /**
@@ -103,13 +111,16 @@ class CustomerController extends Controller
             ]);
 
             if ($request->hardware_information) {
-                HardwareInformation::where('customer_id', $id)->update(['customer_id' => null, 'used_status' => 0]);
-                HardwareInformation::where('id', $request->hardware_information)->update(['customer_id' => $id, 'used_status' => 1]);
+                Hardware::whereIn('id', $request->hardware_information)->update(['customer_id' => $id, 'used_status' => 1]);
+            } else {
+                Hardware::where('customer_id', $id)->update(['customer_id' => null, 'used_status' => 0]);
             }
             DB::commit();
 
             return redirect()->route('master-data.customer.index')->with('success', 'Customer updated successfully');
         } catch (\Throwable $th) {
+            DB::rollBack();
+
             return redirect()->back()->with('error', 'Failed to update customer');
         }
     }
@@ -122,12 +133,22 @@ class CustomerController extends Controller
         try {
             DB::beginTransaction();
             Customer::where('id', $id)->delete();
-            HardwareInformation::where('customer_id', $id)->update(['customer_id' => null, 'used_status' => 0]);
+            Hardware::where('customer_id', $id)->update(['customer_id' => null, 'used_status' => 0]);
             DB::commit();
 
             return redirect()->route('master-data.customer.index')->with('success', 'Customer deleted successfully');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Failed to delete customer');
         }
+    }
+
+
+    public function getData(Request $request)
+    {
+        $data = Customer::selectRaw('MIN(id) as id, name, group_name, email')
+            ->groupBy('name', 'group_name', 'email')
+            ->get();
+
+        return response()->json($data);
     }
 }

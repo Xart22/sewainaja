@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CustomerSupportController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HardwareController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,5 +38,7 @@ Route::get('/tracking/{id}', [CustomerSupportController::class, 'tracking'])->na
 Route::get('/customer-support', [CustomerSupportController::class, 'getData'])->name('customer-support-data');
 
 Route::get('/hardware-data', [HardwareController::class, 'getData'])->name('hardware-data');
+
+Route::get('/customer-data', [CustomerController::class, 'getData'])->name('customer-data');
 
 Route::get('/get-teknisi', [CustomerSupportController::class, 'getTeknisi'])->name('get-teknisi');

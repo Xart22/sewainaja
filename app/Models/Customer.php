@@ -13,6 +13,6 @@ class Customer extends Model
 
     public function hardware()
     {
-        return $this->belongsTo(HardwareInformation::class, 'hw_id');
+        return $this->hasMany(Hardware::class, 'customer_id', 'id');
     }
 }

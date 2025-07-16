@@ -1,6 +1,6 @@
 import "./bootstrap";
+import "preline";
 import "flowbite";
-
 import { DataTable } from "simple-datatables";
 
 document.addEventListener("DOMContentLoaded", function () {

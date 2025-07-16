@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HardwareInformation;
+use App\Imports\HardwareImport;
+use App\Models\Hardware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class HardwareController extends Controller
@@ -20,7 +23,7 @@ class HardwareController extends Controller
         return view(
             'master-data.hardware.index',
             [
-                'hardwares' => HardwareInformation::all()
+                'hardwares' => Hardware::all()
             ]
         );
     }
@@ -42,7 +45,7 @@ class HardwareController extends Controller
             'hardware_name' => 'required',
             'hardware_type' => 'required',
             'hardware_brand' => 'required',
-            'hw_serial_number' => 'required|unique:hardware_information',
+            'hw_serial_number' => 'required|unique:hardware',
             'hardware_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
@@ -51,7 +54,7 @@ class HardwareController extends Controller
         Storage::disk('public')->putFileAs('images', $file, $filename);
 
 
-        HardwareInformation::create([
+        Hardware::create([
             'hw_name' => $request->hardware_name,
             'hw_type' => $request->hardware_type,
             'hw_brand' => $request->hardware_brand,
@@ -72,7 +75,7 @@ class HardwareController extends Controller
      */
     public function show(string $id)
     {
-        $hardware = HardwareInformation::find($id);
+        $hardware = Hardware::find($id);
         $encryptedValue  = Crypt::encrypt($hardware->hw_serial_number);
         $qrCode = QrCode::size(200)->generate(route('customer-online', $encryptedValue));
         return view(
@@ -92,7 +95,7 @@ class HardwareController extends Controller
         return view(
             'master-data.hardware.edit',
             [
-                'hardware' => HardwareInformation::find($id)
+                'hardware' => Hardware::find($id)
             ]
         );
     }
@@ -106,10 +109,10 @@ class HardwareController extends Controller
             'hardware_name' => 'required',
             'hardware_type' => 'required',
             'hardware_brand' => 'required',
-            'hw_serial_number' => 'required|unique:hardware_information,hw_serial_number,' . $id,
+            'hw_serial_number' => 'required|unique:hardware,hw_serial_number,' . $id,
         ]);
 
-        $hardware = HardwareInformation::find($id);
+        $hardware = Hardware::find($id);
 
         $hardware->hw_name = $request->hardware_name;
         $hardware->hw_type = $request->hardware_type;
@@ -139,7 +142,7 @@ class HardwareController extends Controller
      */
     public function destroy(string $id)
     {
-        HardwareInformation::destroy($id);
+        Hardware::destroy($id);
 
         return redirect()->route('master-data.hardware.index')
             ->with('success', 'Hardware Information deleted successfully.');
@@ -147,7 +150,7 @@ class HardwareController extends Controller
 
     public function copyHardware(Request $request)
     {
-        $hardware = HardwareInformation::find($request->hardware_id);
+        $hardware = Hardware::find($request->hardware_id);
         $newHardware = $hardware->replicate();
         $newHardware->hw_serial_number = $request->hw_serial_number;
         $newHardware->customer_id = null;
@@ -162,7 +165,7 @@ class HardwareController extends Controller
     public function getData()
     {
         // get data from database group by hardware type
-        $data = HardwareInformation::selectRaw('MIN(id) as id, hw_name, hw_type, hw_brand, hw_image')
+        $data = Hardware::selectRaw('MIN(id) as id, hw_name, hw_type, hw_brand, hw_image')
             ->groupBy('hw_name', 'hw_type', 'hw_brand', 'hw_image')
             ->get();
 
@@ -176,7 +179,7 @@ class HardwareController extends Controller
 
     public function qrCode(string $id)
     {
-        // $hardware = HardwareInformation::findOrFail($id);
+        // $hardware = Hardware::findOrFail($id);
 
 
         // $qrCode = QrCode::format('png')->size(200)->generate(env('APP_URL') . '/master-data/hardware/' . $hardware->id);
@@ -200,5 +203,51 @@ class HardwareController extends Controller
                 'Content-Type' => 'image/png',
             ]
         );
+    }
+
+
+    public function import(Request $request)
+    {
+        try {
+            $data = Excel::toCollection(new HardwareImport, $request->file('hw_file'));
+            $image = $request->file('hw_image');
+            if ($image) {
+                $filename = time() . '_' . $image->getClientOriginalName();
+                Storage::disk('public')->putFileAs('images', $image, $filename);
+            }
+            DB::beginTransaction();
+            foreach ($data[0] as $row) {
+                // Validate each row before importing
+                if (isset($row['hw_name'], $row['hw_type'], $row['hw_brand'], $row['hw_model'], $row['hw_serial_number'])) {
+                    Hardware::create([
+                        'hw_name' => $row['hw_name'],
+                        'hw_type' => $row['hw_type'],
+                        'hw_brand' => $row['hw_brand'],
+                        'hw_model' => $row['hw_model'],
+                        'hw_serial_number' => $row['hw_serial_number'],
+                        'hw_relocation' => $row['hw_relocation'] ?? null,
+                        'hw_technology' => $row['hw_technology'] ?? null,
+                        'hw_bw_color' => $row['hw_bw_color'] ?? null,
+                        'hw_description' => $row['hw_description'] ?? null,
+                        'customer_id' => $request->customer_id ?? null,
+                        'used_status' => $request->customer_id == null ? 0 : 1,
+                        'hw_image' => isset($filename) ? Storage::url('images/' . $filename) : null,
+                    ]);
+                }
+            }
+            DB::commit();
+            //save
+            return redirect()->route('master-data.hardware.index')
+                ->with('success', 'Hardware data imported successfully.');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            //delete the image if exists
+            if (isset($filename)) {
+                Storage::delete('public/images/' . $filename);
+            }
+
+            return redirect()->route('master-data.hardware.index')
+                ->with('error', 'Failed to import hardware data. ' . $th->getMessage());
+        }
     }
 }

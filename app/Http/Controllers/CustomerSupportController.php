@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\RequestSupport;
 use App\Models\CustomerSupport;
 use App\Models\CustomerSupportLog;
-use App\Models\HardwareInformation;
+use App\Models\Hardware;
 use App\Models\UlasanCustomer;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -26,7 +26,7 @@ class CustomerSupportController extends Controller
     public function customerOnline($hashed)
     {
         $id = decrypt($hashed);
-        $data = HardwareInformation::where('hw_serial_number', $id)->with('customer')->first();
+        $data = Hardware::where('hw_serial_number', $id)->with('customer')->first();
         if (!$data->customer) {
             return redirect()->route('not-found');
         }
