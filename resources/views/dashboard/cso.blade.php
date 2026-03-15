@@ -629,13 +629,13 @@ Dashboard
         document.getElementById('picFinancial').innerText = data.customer.pic_financial;
         document.getElementById('picFinancialPhoneNumber').innerText = data.customer.pic_financial_phone_number;
         
-        document.getElementById('contractStartDate').innerText =formatDate(data.customer.contract_start);
-        document.getElementById('contractEndDate').innerText = formatDate(data.customer.expired_at);
-        document.getElementById('hardwareName').innerText = data.customer.hardware.hw_name;
-        document.getElementById('hardwareType').innerText = data.customer.hardware.hw_type;
-        document.getElementById('hardwareBrand').innerText = data.customer.hardware.hw_brand;
-        document.getElementById('hardwareSerialNumber').innerText = data.customer.hardware.hw_serial_number;
-        document.getElementById('hardwareImage').src = data.customer.hardware.hw_image;
+        document.getElementById('contractStartDate').innerText =formatDate(data.contract_start);
+        document.getElementById('contractEndDate').innerText = formatDate(data.expired_at);
+        document.getElementById('hardwareName').innerText = data.hardware.hw_name;
+        document.getElementById('hardwareType').innerText = data.hardware.hw_type;
+        document.getElementById('hardwareBrand').innerText = data.hardware.hw_brand;
+        document.getElementById('hardwareSerialNumber').innerText = data.hardware.hw_serial_number;
+        document.getElementById('hardwareImage').src = data.hardware.hw_image;
         document.getElementById('logs').innerHTML = '';
         data.logs.forEach((log)=>{
                 const tr = document.createElement('tr');
