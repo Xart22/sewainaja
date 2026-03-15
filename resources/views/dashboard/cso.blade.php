@@ -396,14 +396,21 @@ Dashboard
     </div>
 
     <div id="prosesModal" tabindex="-1" aria-hidden="true"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-        <div class="relative p-4 w-full max-w-4xl max-h-full">
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900/40 backdrop-blur-sm">
+        <div class="relative p-4 w-full max-w-7xl max-h-full">
             <!-- Modal content -->
-            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 p-4 md:p-5">
+            <div class="relative bg-white rounded-2xl shadow-2xl border border-gray-100 dark:bg-gray-700 p-4 md:p-5">
+                <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4 dark:border-gray-600">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Detail Tiket & Progress</h2>
+                    <button data-modal-hide="prosesModal" type="button"
+                        class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                        Tutup
+                    </button>
+                </div>
                 <!-- Modal body -->
-                <div class="flex flex-row justify-around">
+                <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-4">
 
-                    <div class="bg-[#F9FAFB] w-full">
+                    <div class="w-full rounded-xl border border-gray-200 bg-[#F9FAFB] p-4 shadow-sm">
                         <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Detail Permohonan</h1>
                         <p class="text-lg font-bold">ID TICKET</p>
                         <p class="text-base text-gray-600" id="idTicket"></p>
@@ -418,7 +425,7 @@ Dashboard
                         <p class="text-base text-gray-600" id="deskripsiKeperluan"></p>
 
                     </div>
-                    <div class="bg-[#F9FAFB] w-full">
+                    <div class="w-full rounded-xl border border-gray-200 bg-[#F9FAFB] p-4 shadow-sm">
                         <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Detail Customer</h1>
                         <p class="text-lg font-bold">Nama Customer</p>
                         <p class="text-base text-gray-600" id="namaCustomer"></p>
@@ -439,7 +446,7 @@ Dashboard
                         <p class="text-lg font-bold">PIC Financial Phone Number</p>
                         <p class="text-base text-gray-600" id="picFinancialPhoneNumber"></p>
                     </div>
-                    <div class="bg-[#F9FAFB] w-full">
+                    <div class="w-full rounded-xl border border-gray-200 bg-[#F9FAFB] p-4 shadow-sm">
                         <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Detail Hardware</h1>
                         <p class="text-lg font-bold">Hardware Name</p>
                         <p class="text-base text-gray-600" id="hardwareName"></p>
@@ -450,14 +457,14 @@ Dashboard
                         <p class="text-lg font-bold">Hardware Serial Number</p>
                         <p class="text-base text-gray-600" id="hardwareSerialNumber"></p>
                         <p class="text-lg font-bold">Hardware Image</p>
-                        <img id="hardwareImage" class="h-32 w-32" src="" alt="">
+                        <img id="hardwareImage" class="h-32 w-32 rounded-lg border border-gray-200 object-cover" src="" alt="Hardware Image">
                         <p class="text-lg font-bold">Contract Start Date</p>
                         <p class="text-base text-gray-600" id="contractStartDate"></p>
                         <p class="text-lg font-bold">Contract End Date</p>
                         <p class="text-base text-gray-600" id="contractEndDate"></p>
                     </div>
 
-                    <div class="bg-[#F9FAFB] w-full hidden" id="detailTeknisi">
+                    <div class="w-full rounded-xl border border-gray-200 bg-[#F9FAFB] p-4 shadow-sm hidden" id="detailTeknisi">
                         <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Detail Teknisi</h1>
                         <p class="text-lg font-bold">Nama Teknisi</p>
                         <p class="text-base text-gray-600" id="namaTeknisi"></p>
@@ -470,10 +477,15 @@ Dashboard
                             class="text-white mt-3 bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
                             Track Teknisi
                         </button>
+                        <button type="button" id="sendEstimationArrivalTime"
+
+                            class="text-white mt-3 bg-[#2943D1] hover:bg-yellow-400 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-yellow-500 dark:hover:bg-yellow-600 dark:focus:ring-yellow-700 w-full">
+                            Send Estimation Arrival Time to Customer
+                        </button>
                     </div>
 
 
-                    <div class="bg-white w-full hidden" id="assignteknisi">
+                    <div class="bg-white w-full rounded-xl border border-gray-200 p-4 shadow-sm hidden" id="assignteknisi">
                         <form action="{{ route('assign-teknisi-web') }}" method="POST">
                             @csrf
                             <label class="text-gray-700 dark:text-gray-200 font-semibold" for="hardware_name">Tugaskan
@@ -547,26 +559,26 @@ Dashboard
                         </form>
                     </div>
                 </div>
-                <div class="bg-[#F9FAFB]">
-                    <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Logs</h1>
-                    <div class="overflow-y-auto h-96">
-                        <table class="table-auto w-full border">
+                <div class="bg-[#F9FAFB] rounded-xl border border-gray-200 p-4 mt-4">
+                    <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">Logs Aktivitas</h1>
+                    <div class="overflow-y-auto h-80 rounded-lg border border-gray-200 bg-white">
+                        <table class="table-auto w-full text-sm">
                             <thead>
-                                <tr>
-                                    <th>
+                                <tr class="bg-gray-100 text-gray-700 sticky top-0">
+                                    <th class="py-2 px-3">
                                         User
                                     </th>
 
-                                    <th>
+                                    <th class="py-2 px-3">
                                         Message
                                     </th>
-                                    <th>
+                                    <th class="py-2 px-3">
                                         Date Time
                                     </th>
 
                                 </tr>
                             </thead>
-                            <tbody id="logs" class="text-center">
+                            <tbody id="logs" class="text-center divide-y divide-gray-100">
                             </tbody>
                         </table>
                     </div>
@@ -609,7 +621,10 @@ Dashboard
 
 
     <script>
+        let currentTicketData = null;
+
         const tes =async (data) => {
+        currentTicketData = data;
         const prosesModal = document.getElementById('prosesModal');
         const modal = new Modal(prosesModal); 
         modal.show();
@@ -629,13 +644,13 @@ Dashboard
         document.getElementById('picFinancial').innerText = data.customer.pic_financial;
         document.getElementById('picFinancialPhoneNumber').innerText = data.customer.pic_financial_phone_number;
         
-        document.getElementById('contractStartDate').innerText =formatDate(data.contract_start);
-        document.getElementById('contractEndDate').innerText = formatDate(data.expired_at);
-        document.getElementById('hardwareName').innerText = data.hardware.hw_name;
-        document.getElementById('hardwareType').innerText = data.hardware.hw_type;
-        document.getElementById('hardwareBrand').innerText = data.hardware.hw_brand;
-        document.getElementById('hardwareSerialNumber').innerText = data.hardware.hw_serial_number;
-        document.getElementById('hardwareImage').src = data.hardware.hw_image;
+        document.getElementById('contractStartDate').innerText =formatDate(data.customer.contract_start);
+        document.getElementById('contractEndDate').innerText = formatDate(data.customer.expired_at);
+        document.getElementById('hardwareName').innerText = data.hardware?.hw_name ?? '-';
+        document.getElementById('hardwareType').innerText = data.hardware?.hw_type ?? '-';
+        document.getElementById('hardwareBrand').innerText = data.hardware?.hw_brand ?? '-';
+        document.getElementById('hardwareSerialNumber').innerText = data.hardware?.hw_serial_number ?? '-';
+        document.getElementById('hardwareImage').src = data.hardware?.hw_image ?? '';
         document.getElementById('logs').innerHTML = '';
         data.logs.forEach((log)=>{
                 const tr = document.createElement('tr');
@@ -644,9 +659,12 @@ Dashboard
                 const tdMessage = document.createElement('td');
                 const tdDateTime = document.createElement('td');
                 tdUser.innerText = log.user ? log.user.name : '-';
+                tdUser.classList.add('py-2', 'px-3');
 
                 tdMessage.innerText = log.message;
+                tdMessage.classList.add('py-2', 'px-3');
                 tdDateTime.innerText = formatDate(log.created_at);
+                tdDateTime.classList.add('py-2', 'px-3');
                 tr.appendChild(tdUser);
      
                 tr.appendChild(tdMessage);
@@ -660,29 +678,167 @@ Dashboard
             
         }else{
        
-        if(data.status_teknisi == 'Waiting' || data.status_teknisi == 'Accepted' || data.status_teknisi == 'On The Way' || data.status_teknisi == 'Arrived' || data.status_teknisi == 'Repairing' || data.status_teknisi == 'Done'){
+        if(data.status_teknisi == 'Waiting' || data.status_teknisi == 'Accepted' || data.status_teknisi == 'On The Way' || data.status_teknisi == 'Arrived' || data.status_teknisi == 'Repairing' || data.status_teknisi == 'Working' || data.status_teknisi == 'Done'){
             document.getElementById('trackTeknisi').classList.add('hidden');
+            document.getElementById('sendEstimationArrivalTime').classList.add('hidden');
             document.getElementById('assignteknisi').classList.add('hidden');
             document.getElementById('detailTeknisi').classList.remove('hidden');
-            document.getElementById('namaTeknisi').innerText = data.teknisi.name;
-            document.getElementById('noWaTeknisi').innerText = data.teknisi.phone_number ?? '-';
-            document.getElementById('user_id').value = data.teknisi.id;
+            document.getElementById('namaTeknisi').innerText = data.teknisi?.name ?? '-';
+            document.getElementById('noWaTeknisi').innerText = data.teknisi?.phone_number ?? '-';
+            document.getElementById('user_id').value = data.teknisi?.id ?? '';
          
-           await getALocationAddress(data.teknisi.latitude,data.teknisi.longitude);  
+           await getALocationAddress(data.teknisi?.latitude,data.teknisi?.longitude);  
         }
         if(data.status_teknisi == 'On The Way'){
             document.getElementById('trackTeknisi').classList.remove('hidden');
+            document.getElementById('sendEstimationArrivalTime').classList.remove('hidden');
             document.getElementById('map').src = `{{route('tracking')}}?id=${data.no_ticket}`;
         }
         
     }
     };
 
+    const parseCoordinate = (value) => {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const normalizeWhatsappNumber = (phone) => {
+        if (!phone) {
+            return '';
+        }
+
+        let normalized = String(phone).replace(/[^\d]/g, '');
+        if (normalized.startsWith('0')) {
+            normalized = `62${normalized.slice(1)}`;
+        } else if (normalized.startsWith('8')) {
+            normalized = `62${normalized}`;
+        }
+
+        return normalized;
+    };
+
+    const formatDurationFromSeconds = (seconds) => {
+        const totalMinutes = Math.max(1, Math.round(seconds / 60));
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+
+        if (hours === 0) {
+            return `${totalMinutes} menit`;
+        }
+
+        if (minutes === 0) {
+            return `${hours} jam`;
+        }
+
+        return `${hours} jam ${minutes} menit`;
+    };
+
+    const getCustomerCoordinate = async (data) => {
+        const customerLat = parseCoordinate(data?.customer?.latitude);
+        const customerLon = parseCoordinate(data?.customer?.longitude);
+
+        if (customerLat !== null && customerLon !== null) {
+            return {
+                lat: customerLat,
+                lon: customerLon,
+            };
+        }
+
+        const customerAddress = data?.customer?.address;
+        if (!customerAddress) {
+            throw new Error('Lokasi customer tidak tersedia');
+        }
+
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(customerAddress)}&limit=1`);
+        const geocodeResult = await response.json();
+
+        if (!Array.isArray(geocodeResult) || geocodeResult.length === 0) {
+            throw new Error('Alamat customer tidak dapat dipetakan');
+        }
+
+        return {
+            lat: parseFloat(geocodeResult[0].lat),
+            lon: parseFloat(geocodeResult[0].lon),
+        };
+    };
+
+    const getRouteEstimation = async (origin, destination) => {
+        const routeUrl = `https://router.project-osrm.org/route/v1/driving/${origin.lon},${origin.lat};${destination.lon},${destination.lat}?overview=false`;
+        const response = await fetch(routeUrl);
+        const routeData = await response.json();
+
+        if (routeData.code !== 'Ok' || !routeData.routes || routeData.routes.length === 0) {
+            throw new Error('Rute teknisi ke customer tidak ditemukan');
+        }
+
+        return routeData.routes[0];
+    };
+
+    const sendEstimationArrivalTime = async () => {
+        const button = document.getElementById('sendEstimationArrivalTime');
+        const originalLabel = button.innerText;
+        button.disabled = true;
+        button.innerText = 'Menyiapkan pesan...';
+
+        try {
+            if (!currentTicketData) {
+                throw new Error('Data tiket belum tersedia');
+            }
+
+            const teknisiName = currentTicketData?.teknisi?.name;
+            const teknisiLat = parseCoordinate(currentTicketData?.teknisi?.latitude);
+            const teknisiLon = parseCoordinate(currentTicketData?.teknisi?.longitude);
+            const customerPhone = normalizeWhatsappNumber(currentTicketData?.no_wa_pelapor);
+
+            if (!teknisiName) {
+                throw new Error('Nama teknisi tidak ditemukan');
+            }
+            if (teknisiLat === null || teknisiLon === null) {
+                throw new Error('Lokasi teknisi belum tersedia');
+            }
+            if (!customerPhone) {
+                throw new Error('Nomor WhatsApp customer tidak valid');
+            }
+
+            const customerCoordinate = await getCustomerCoordinate(currentTicketData);
+            const route = await getRouteEstimation(
+                { lat: teknisiLat, lon: teknisiLon },
+                customerCoordinate
+            );
+
+            const etaText = formatDurationFromSeconds(route.duration);
+            const distanceKm = (route.distance / 1000).toFixed(1);
+            const customerName = currentTicketData?.nama_pelapor || 'Bapak/Ibu';
+            const ticketNo = currentTicketData?.no_ticket || '-';
+
+            const message = `Halo *${customerName}*,\n\nTeknisi *${teknisiName}* sedang menuju lokasi Anda untuk tiket *${ticketNo}*.\nEstimasi waktu tiba sekitar *${etaText}* (jarak sekitar ${distanceKm} km).\n\nMohon standby, kami akan segera sampai. Terima kasih.`;
+
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${customerPhone}&text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        } catch (error) {
+            alert(error.message || 'Gagal menyiapkan estimasi waktu kedatangan');
+        } finally {
+            button.disabled = false;
+            button.innerText = originalLabel;
+        }
+    };
+
+    document.getElementById('sendEstimationArrivalTime').addEventListener('click', sendEstimationArrivalTime);
+
     const getALocationAddress = (lat,long)=>{
+        if (!lat || !long) {
+            document.getElementById('lokasiTeknisi').innerText = '-';
+            return;
+        }
+
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${long}&zoom=18&addressdetails=1`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('lokasiTeknisi').innerText = data.display_name;
+            document.getElementById('lokasiTeknisi').innerText = data.display_name ?? '-';
+        })
+        .catch(() => {
+            document.getElementById('lokasiTeknisi').innerText = '-';
         });
     };
     const formatDate = (date) => {

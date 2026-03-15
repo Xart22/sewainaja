@@ -24,9 +24,9 @@ class CustomerSupportController extends Controller
     public function getData()
     {
 
-        $newRequest = CustomerSupport::where('created_at', '>=', date('Y-m-01'))->where('status_cso', '!=', 'Done')->with(['cso', 'customer', 'teknisi', 'logs'])->orderBy('created_at', 'desc')->get();
+        $newRequest = CustomerSupport::where('created_at', '>=', date('Y-m-01'))->where('status_cso', '!=', 'Done')->with(['cso', 'customer', 'teknisi', 'logs','hardware'])->orderBy('created_at', 'desc')->get();
         $countNewRequest = $newRequest->count();
-        $requestDone = CustomerSupport::where('created_at', '>=', date('Y-m-01'))->where('status_cso', 'Done')->with(['cso', 'customer', 'teknisi', 'logs'])->get();
+        $requestDone = CustomerSupport::where('created_at', '>=', date('Y-m-01'))->where('status_cso', 'Done')->with(['cso', 'customer', 'teknisi', 'logs','hardware'])->get();
 
 
         return response()->json([
@@ -57,7 +57,7 @@ class CustomerSupportController extends Controller
 
     public function getDataTeknisi()
     {
-        $data = CustomerSupport::where('teknisi_id', Auth::user()->id)->with(['cso', 'customer', 'teknisi', 'logs'])->get();
+        $data = CustomerSupport::where('teknisi_id', Auth::user()->id)->with(['cso', 'customer', 'teknisi', 'logs','hardware'])->get();
 
         return response()->json([
             'data' => $data,
@@ -66,7 +66,7 @@ class CustomerSupportController extends Controller
 
     public function getDataTeknisiByDate($start, $end)
     {
-        $data = CustomerSupport::where('teknisi_id', Auth::user()->id)->whereBetween('created_at', [$start, $end])->with(['cso', 'customer', 'teknisi', 'logs'])->where('status_teknisi', 'Done')->get();
+        $data = CustomerSupport::where('teknisi_id', Auth::user()->id)->whereBetween('created_at', [$start, $end])->with(['cso', 'customer', 'teknisi', 'logs','hardware'])->where('status_teknisi', 'Done')->get();
 
         return response()->json([
             'data' => $data,
@@ -319,7 +319,7 @@ class CustomerSupportController extends Controller
             }
             if ($data->status_teknisi == "Done") {
                 broadcast(new RequestSupport($data, 'Waiting'));
-                $linkCloseTiket = urlencode('https://disewainaja.co.id/close-ticket/' . $data->no_ticket);
+                $linkCloseTiket = urlencode('https://cs.disewainaja.co.id/customer-support/close-ticket/' . $data->no_ticket);
                 $template = "https://api.whatsapp.com/send?phone={$nomorWA}&text=Halo%20*{$namaPelapor}*%2C%0APerbaikan%20terkait%20laporan%20Anda%20dengan%20Nomor%20Tiket%3A%20*{$nomorTiket}*%20telah%20selesai%20kami%20kerjakan.%20%F0%9F%8F%A1%0A%0AKami%20mohon%20kesediaannya%20untuk%20melakukan%20pengecekan%20dan%20meng-close%20tiket%20jika%20masalah%20telah%20terselesaikan.%20%F0%9F%98%8A%0A%0ASilakan%20klik%20link%20berikut%20untuk%20meng-close%20tiket%3A%0A{$linkCloseTiket}%0A%0AJika%20masih%20ada%20kendala%2C%20jangan%20ragu%20untuk%20menghubungi%20kami%20kembali.%20Terima%20kasih%20telah%20mempercayai%20Disewainaja.co.id.%20%F0%9F%99%8F";
             }
             if ($data->status_cso == "Waiting") {

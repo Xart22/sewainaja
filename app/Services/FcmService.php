@@ -44,9 +44,9 @@ class FcmService
         $response = Http::withHeaders($headers)
             ->post('https://fcm.googleapis.com/v1/projects/' . $this->fcm_project_id . '/messages:send', $dataMessage);
 
-        if ($response->failed()) {
-            throw new \Exception('Failed to send notification');
-        }
+        // if ($response->failed()) {
+        //     throw new \Exception('Failed to send notification');
+        // }
 
         return $response->json();
     }

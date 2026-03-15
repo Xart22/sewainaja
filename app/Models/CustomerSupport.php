@@ -10,11 +10,6 @@ class CustomerSupport extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $casts = [
-        'created_at' => 'datetime:Y-m-d H:i:s',
-        'updated_at' => 'datetime:Y-m-d H:i:s',
-    ];
-
 
 
     public function customer()
@@ -41,4 +36,9 @@ class CustomerSupport extends Model
     {
         return $this->hasMany(CustomerSupportLog::class, 'customer_support_id')->with('user');
     }
+
+    public function ulasan()
+    {
+        return $this->hasOne(UlasanCustomer::class, 'customer_support_id');
+    }   
 }

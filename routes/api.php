@@ -13,7 +13,7 @@ Route::get('/user', function (Request $request) {
 
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/customer-support/get-customer-support', [CustomerSupportController::class, 'getDataCso'])->name('get-customer-support');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
@@ -22,7 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/customer-support/send-chat/{id}', [CustomerSupportController::class, 'sendChatApi'])->name('send-chat-api');
     Route::post('/customer-support/assign-teknisi', [CustomerSupportController::class, 'assignteknisi'])->name('assign-teknisi');
-
+    Route::get('/customer-support/get-customer-support', [CustomerSupportController::class, 'getDataCso'])->name('get-customer-support');
     Route::get('/teknisi/get-customer-support', [CustomerSupportController::class, 'getDataTeknisi'])->name('get-customer-support-teknisi');
     Route::get('/teknisi/get-customer-support/{start}/{end}', [CustomerSupportController::class, 'getDataTeknisiByDate'])->name('get-customer-support-teknisi-by-date');
     Route::post('/teknisi/update-status-teknisi/{id}', [CustomerSupportController::class, 'updateStatusTeknisi'])->name('update-status-teknisi');
