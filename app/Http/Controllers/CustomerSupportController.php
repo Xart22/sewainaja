@@ -64,6 +64,7 @@ class CustomerSupportController extends Controller
             'keperluan' => $request->keperluan,
             'message' => $request->message,
             'customer_id' => $request->customer_id,
+            'hw_id' => $request->hw_id,
         ]);
 
 

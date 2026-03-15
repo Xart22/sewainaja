@@ -104,6 +104,7 @@
         <form action="{{route('customer-support.store') }}" method="POST" class=" mt-5 md:w-1/4 w-full">
             @csrf
             <input type="hidden" name="customer_id" value="{{ $data->customer->id }}">
+            <input type="hidden" name="hw_id" value="{{ $data->id }}">
             <div class="flex flex-col w-full">
                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama</label>
                 <input type="text" name="name" id="name" class="w-full p-2 mt-1 border border-gray-300 rounded-md"

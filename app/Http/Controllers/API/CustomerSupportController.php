@@ -39,7 +39,7 @@ class CustomerSupportController extends Controller
     public function getDataCso()
     {
 
-        $data = CustomerSupport::where('created_at', '>=', date('Y-m-01'))->where('status_cso', '!=', 'Done')->with(['cso', 'customer', 'teknisi', 'logs'])->orderBy('created_at', 'desc')->get();
+        $data = CustomerSupport::where('created_at', '>=', date('Y-m-01'))->where('status_cso', '!=', 'Done')->with(['cso', 'customer', 'teknisi', 'logs', 'hardware'])->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'data' => $data,

@@ -22,6 +22,11 @@ class CustomerSupport extends Model
         return $this->belongsTo(Customer::class, 'customer_id')->with('hardware');
     }
 
+    public function hardware()
+    {
+        return $this->belongsTo(Hardware::class, 'hw_id');
+    }
+
     public function cso()
     {
         return $this->belongsTo(User::class, 'responded_by');
