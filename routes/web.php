@@ -31,6 +31,7 @@ Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () 
     // master data hardware
     Route::get('/master-data/hardware', [HardwareController::class, 'index'])->name('master-data.hardware.index');
     Route::get('/master-data/hardware/create', [HardwareController::class, 'create'])->name('master-data.hardware.create');
+    Route::get('/master-data/hardware/export', [HardwareController::class, 'export'])->name('master-data.hardware.export');
     Route::post('/master-data/hardware', [HardwareController::class, 'store'])->name('master-data.hardware.store');
     Route::get('/master-data/hardware/{id}', [HardwareController::class, 'show'])->name('master-data.hardware.show');
     Route::get('/master-data/hardware/{id}/edit', [HardwareController::class, 'edit'])->name('master-data.hardware.edit');

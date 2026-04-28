@@ -17,166 +17,253 @@
 
 <!-- Hardware Select Config -->
 <script>
+function createSelectConfig(config) {
+    return {
+        filter: '',
+        show: false,
+        selected: null,
+        focusedOptionIndex: null,
+        options: [],
+        close() {
+            this.show = false;
+            this.filter = this.selectedName();
+            this.focusedOptionIndex = this.selected ? this.focusedOptionIndex : null;
+        },
+        open() {
+            this.show = true;
+            this.filter = '';
+        },
+        toggle() {
+            this.show ? this.close() : this.open();
+        },
+        isOpen() {
+            return this.show === true;
+        },
+        selectedName() {
+            return this.selected ? config.displayLabel(this.selected) : this.filter;
+        },
+        classOption(id, index) {
+            const isSelected = this.selected && id == this.selected.id;
+            const isFocused = index == this.focusedOptionIndex;
+
+            return {
+                'cursor-pointer w-full border-b border-gray-100 hover:bg-blue-50': true,
+                'bg-blue-100': isSelected,
+                'bg-blue-50': isFocused,
+            };
+        },
+        fetchOptions() {
+            fetch(config.fetchUrl)
+                .then(res => res.json())
+                .then(data => {
+                    this.options = Array.isArray(data) ? data : [];
+                });
+        },
+        filteredOptions() {
+            const normalizedFilter = (this.filter || '').toLowerCase();
+
+            return this.options.filter(opt =>
+                config.searchFields.some(field => String(opt[field] || '').toLowerCase().includes(normalizedFilter))
+            );
+        },
+        onOptionClick(index) {
+            this.focusedOptionIndex = index;
+            const option = this.filteredOptions()[index];
+            if (!option) {
+                return;
+            }
+
+            const inputs = document.querySelectorAll(`input[name="${config.targetInputName}"]`);
+            inputs.forEach(input => {
+                input.value = option.id;
+            });
+
+            if (typeof config.onOptionSelected === 'function') {
+                config.onOptionSelected(option);
+            }
+
+            this.selectOption();
+        },
+        selectOption() {
+            if (!this.isOpen()) {
+                return;
+            }
+
+            this.focusedOptionIndex = this.focusedOptionIndex ?? 0;
+            const selected = this.filteredOptions()[this.focusedOptionIndex];
+            if (!selected) {
+                this.close();
+                return;
+            }
+
+            if (this.selected && this.selected.id == selected.id) {
+                this.filter = '';
+                this.selected = null;
+            } else {
+                this.selected = selected;
+                this.filter = this.selectedName();
+            }
+
+            this.close();
+        },
+        focusPrevOption() {
+            if (!this.isOpen()) {
+                return;
+            }
+
+            const maxIndex = this.filteredOptions().length - 1;
+            this.focusedOptionIndex = this.focusedOptionIndex > 0 ? this.focusedOptionIndex - 1 : maxIndex;
+        },
+        focusNextOption() {
+            if (!this.isOpen()) {
+                this.open();
+            }
+
+            const maxIndex = this.filteredOptions().length - 1;
+            this.focusedOptionIndex =
+                this.focusedOptionIndex == null || this.focusedOptionIndex == maxIndex ? 0 : this.focusedOptionIndex + 1;
+        }
+    };
+}
+
 function selectConfigs() {
-  return {
-    filter: '',
-    show: false,
-    selected: null,
-    focusedOptionIndex: null,
-    options: null,
-    close() {
-      this.show = false;
-      this.filter = this.selectedName();
-      this.focusedOptionIndex = this.selected ? this.focusedOptionIndex : null;
-    },
-    open() {
-      this.show = true;
-      this.filter = '';
-    },
-    toggle() { this.show ? this.close() : this.open(); },
-    isOpen() { return this.show === true; },
-    selectedName() {
-      return this.selected ? `${this.selected.hw_name} ${this.selected.hw_type}` : this.filter;
-    },
-    classOption(id, index) {
-      const isSelected = this.selected && id == this.selected.id;
-      const isFocused = index == this.focusedOptionIndex;
-      return {
-        'cursor-pointer w-full border-b border-gray-100 hover:bg-blue-50': true,
-        'bg-blue-100': isSelected,
-        'bg-blue-50': isFocused,
-      };
-    },
-    fetchOptions() {
-      fetch('{{ route('hardware-data') }}')
-        .then(res => res.json())
-        .then(data => this.options = data);
-    },
-    filteredOptions() {
-      return this.options ? this.options.filter(opt =>
-        opt.hw_name.toLowerCase().includes(this.filter) ||
-        opt.hw_type.toLowerCase().includes(this.filter) ||
-        opt.hw_brand.toLowerCase().includes(this.filter)) : [];
-    },
-    onOptionClick(index) {
-      this.focusedOptionIndex = index;
-      const input = document.querySelectorAll('input[name="hardware_id"]');
-        input.forEach(el => el.value = this.filteredOptions()[index].id);
-        this.selectOption();
-    },
-    selectOption() {
-      if (!this.isOpen()) return;
-      this.focusedOptionIndex = this.focusedOptionIndex ?? 0;
-      const selected = this.filteredOptions()[this.focusedOptionIndex];
-      if (this.selected && this.selected.id == selected.id) {
-        this.filter = '';
-        this.selected = null;
-      } else {
-        this.selected = selected;
-        this.filter = this.selectedName();
-      }
-      this.close();
-    },
-    focusPrevOption() {
-      if (!this.isOpen()) return;
-      const maxIndex = this.filteredOptions().length - 1;
-      this.focusedOptionIndex = this.focusedOptionIndex > 0 ? this.focusedOptionIndex - 1 : maxIndex;
-    },
-    focusNextOption() {
-      if (!this.isOpen()) this.open();
-      const maxIndex = this.filteredOptions().length - 1;
-      this.focusedOptionIndex =
-        this.focusedOptionIndex == null || this.focusedOptionIndex == maxIndex ? 0 : this.focusedOptionIndex + 1;
-    }
-  };
+    return createSelectConfig({
+        fetchUrl: "{{ route('hardware-data') }}",
+        targetInputName: 'hardware_id',
+        searchFields: ['hw_name', 'hw_type', 'hw_brand'],
+        displayLabel: option => `${option.hw_name} ${option.hw_type}`,
+    });
 }
+
 function selectUserConfigs() {
-  return {
-    filter: '',
-    show: false,
-    selected: null,
-    focusedOptionIndex: null,
-    options: null,
-    close() {
-      this.show = false;
-      this.filter = this.selectedName();
-      this.focusedOptionIndex = this.selected ? this.focusedOptionIndex : null;
-    },
-    open() {
-      this.show = true;
-      this.filter = '';
-    },
-    toggle() { this.show ? this.close() : this.open(); },
-    isOpen() { return this.show === true; },
-    selectedName() {
-      return this.selected ? `${this.selected.name} ${this.selected.group_name}` : this.filter;
-    },
-    classOption(id, index) {
-      const isSelected = this.selected && id == this.selected.id;
-      const isFocused = index == this.focusedOptionIndex;
-      return {
-        'cursor-pointer w-full border-b border-gray-100 hover:bg-blue-50': true,
-        'bg-blue-100': isSelected,
-        'bg-blue-50': isFocused,
-      };
-    },
-    fetchOptions() {
-      fetch('{{ route('customer-data') }}')
-        .then(res => res.json())
-        .then(data => this.options = data);
-    },
-    filteredOptions() {
-      return this.options ? this.options.filter(opt =>
-        opt.name.toLowerCase().includes(this.filter) ||
-        opt.group_name.toLowerCase().includes(this.filter)) : [];
-    },
-    onOptionClick(index) {
-      this.focusedOptionIndex = index;
-      const input = document.querySelectorAll('input[name="customer_id"]');
-      input.forEach(el => el.value = this.filteredOptions()[index].id);
-      this.selectOption();
-    },
-    selectOption() {
-      if (!this.isOpen()) return;
-      this.focusedOptionIndex = this.focusedOptionIndex ?? 0;
-      const selected = this.filteredOptions()[this.focusedOptionIndex];
-      if (this.selected && this.selected.id == selected.id) {
-        this.filter = '';
-        this.selected = null;
-      } else {
-        this.selected = selected;
-        this.filter = this.selectedName();
-      }
-      this.close();
-    },
-    focusPrevOption() {
-      if (!this.isOpen()) return;
-      const maxIndex = this.filteredOptions().length - 1;
-      this.focusedOptionIndex = this.focusedOptionIndex > 0 ? this.focusedOptionIndex - 1 : maxIndex;
-    },
-    focusNextOption() {
-      if (!this.isOpen()) this.open();
-      const maxIndex = this.filteredOptions().length - 1;
-      this.focusedOptionIndex =
-        this.focusedOptionIndex == null || this.focusedOptionIndex == maxIndex ? 0 : this.focusedOptionIndex + 1;
-    }
-  };
+    return createSelectConfig({
+        fetchUrl: "{{ route('customer-data') }}",
+        targetInputName: 'customer_id',
+        searchFields: ['name', 'group_name'],
+        displayLabel: option => `${option.name} ${option.group_name}`,
+        onOptionSelected: option => onCustomerSelected(option.id),
+    });
 }
 
-function onClick(el) {
-    const modalData = el.getAttribute('data-modal-data');
-    const input = document.querySelectorAll('input[name="hardware_id"]');
-    input.forEach(el => el.value = modalData);
-    
+function getCustomerContractUrl(customerId) {
+    return "{{ route('customer-contracts', ['customer' => '__CUSTOMER__']) }}".replace('__CUSTOMER__', customerId);
+}
 
-    
+function formatContractLabel(contract) {
+    const status = contract.is_active ? 'Active' : 'Inactive';
+    return `${contract.contract_start} - ${contract.contract_end} (${status})`;
+}
+
+function resetAssignContractOptions() {
+    const select = document.getElementById('assign_customer_contract_id');
+    const hint = document.getElementById('assign-contract-hint');
+    if (!select || !hint) {
+        return;
+    }
+
+    select.innerHTML = '<option value="">Pilih Kontrak</option>';
+    select.value = '';
+    select.disabled = true;
+    hint.textContent = 'Pilih customer terlebih dahulu.';
+}
+
+function onCustomerSelected(customerId) {
+    const select = document.getElementById('assign_customer_contract_id');
+    const hint = document.getElementById('assign-contract-hint');
+
+    if (!select || !hint || !customerId) {
+        return;
+    }
+
+    fetch(getCustomerContractUrl(customerId))
+        .then(res => res.json())
+        .then(contracts => {
+            select.innerHTML = '';
+
+            if (!Array.isArray(contracts) || contracts.length === 0) {
+                select.disabled = true;
+                select.innerHTML = '<option value="">Tidak ada kontrak tersedia</option>';
+                hint.textContent = 'Customer ini belum memiliki kontrak.';
+                return;
+            }
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Pilih Kontrak';
+            select.appendChild(placeholder);
+
+            contracts.forEach(contract => {
+                const option = document.createElement('option');
+                option.value = contract.id;
+                option.textContent = formatContractLabel(contract);
+                select.appendChild(option);
+            });
+
+            select.disabled = false;
+            hint.textContent = 'Pilih kontrak untuk assignment hardware.';
+        })
+        .catch(() => {
+            select.disabled = true;
+            select.innerHTML = '<option value="">Gagal memuat kontrak</option>';
+            hint.textContent = 'Terjadi kesalahan saat mengambil data kontrak.';
+        });
+}
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+function openAssignModal(el) {
+    const modalData = el.getAttribute('data-modal-data');
+    const modal = document.getElementById('assign-modal');
+    if (!modal) {
+        return;
+    }
+
+    const input = modal.querySelector('input[name="hardware_id"]');
+    if (input) {
+        input.value = modalData;
+    }
+
+    const customerInput = modal.querySelector('input[name="customer_id"]');
+    if (customerInput) {
+        customerInput.value = '';
+    }
+
+    resetAssignContractOptions();
+
+    openModal('assign-modal');
 }
 </script>
 @endsection
 
 @section('content')
 <div class="mt-14">
-    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Hardware</h1>
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Hardware</h1>
+        <a href="{{ route('master-data.hardware.export') }}"
+            class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:bg-emerald-500 dark:hover:bg-emerald-600 dark:focus:ring-emerald-800">
+            Export Excel
+        </a>
+    </div>
 
     <div class="bg-white rounded-lg shadow-lg dark:bg-gray-800  p-5 mt-5">
 
@@ -294,7 +381,7 @@ function onClick(el) {
                     <td>
                         <div class="flex justify-start space-x-2">
                             @if($hardware->customer_id == null)
-                            <button data-modal-target="assign-modal" data-modal-toggle="assign-modal" data-modal-data={{ $hardware->id }} onclick="onClick(this)"
+                            <button data-modal-data="{{ $hardware->id }}" onclick="openAssignModal(this)"
                                 class="block text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium  text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 rounded-full btn-assign" type="button">
                                 Assign
                              </button>
@@ -332,345 +419,8 @@ function onClick(el) {
 
 </div>
 
-<div id="default-modal" tabindex="-1" aria-hidden="true"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="relative p-4 w-full max-w-2xl max-h-full">
-        <!-- Modal content -->
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <!-- Modal header -->
-            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    Copy Hardware
-                </h3>
-                <button type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                    data-modal-hide="default-modal">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <!-- Modal body -->
-            <div class="p-4 md:p-5 space-y-4">
-
-                <form action="{{route('master-data.hardware.copy')}}" method="post">
-                    @csrf
-                    <div>
-                        <label class="text-gray-700 dark:text-gray-200" for="hardware_name">Hardware Name</label>
-                        <input type="hidden" name="hardware_id">
-                        <div class="flex flex-col items-center">
-                            <div class="w-full  flex flex-col items-center">
-                                <div class="w-full">
-                                    <div x-data="selectConfigs()" x-init="fetchOptions()"
-                                        class="flex flex-col items-center relative">
-                                        <div class="w-full">
-                                            <div @click.away="close()"
-                                                class="my-2 p-1 bg-white flex border border-gray-200 rounded">
-                                                <input x-model="filter" required
-                                                    x-transition:leave="transition ease-in duration-100"
-                                                    x-transition:leave-start="opacity-100"
-                                                    x-transition:leave-end="opacity-0" @mousedown="open()"
-                                                    @keydown.enter.stop.prevent="selectOption()"
-                                                    @keydown.arrow-up.prevent="focusPrevOption()"
-                                                    @keydown.arrow-down.prevent="focusNextOption()"
-                                                    class="p-1 px-2 appearance-none outline-none w-full text-gray-800">
-                                                <div
-                                                    class="text-gray-300 w-8 py-1 pl-2 pr-1 border-l flex items-center border-gray-200">
-                                                    <button @click="toggle()" type="button"
-                                                        class="cursor-pointer w-6 h-6 text-gray-600 outline-none focus:outline-none">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="100%"
-                                                            height="100%" fill="none" viewBox="0 0 24 24"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <polyline x-show="!isOpen()" points="18 15 12 20 6 15">
-                                                            </polyline>
-                                                            <polyline x-show="isOpen()" points="18 15 12 9 6 15">
-                                                            </polyline>
-                                                        </svg>
-
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div x-show="isOpen()"
-                                            class="absolute shadow bg-white top-100 z-40 w-full lef-0 rounded max-h-select overflow-y-auto svelte-5uyqqj">
-                                            <div class="flex flex-col w-full">
-                                                <template x-for="(option, index) in filteredOptions()" :key="index">
-                                                    <div @click="onOptionClick(index)"
-                                                        :class="classOption(option.id, index)"
-                                                        :aria-selected="focusedOptionIndex === index">
-                                                        <div
-                                                            class="flex w-full items-center p-2 pl-2 border-transparent border-l-2 relative hover:border-teal-100">
-                                                            <div class="w-6 flex flex-col items-center">
-                                                                <div
-                                                                    class="flex relative w-5 h-5  justify-center items-center m-1 mr-2  mt-1 rounded-full ">
-                                                                    <img class="rounded-full" alt="A"
-                                                                        x-bind:src="option.hw_image">
-                                                                </div>
-                                                            </div>
-                                                            <div class="w-full items-center flex">
-                                                                <div class="mx-2 -mt-1">
-                                                                    <span
-                                                                        x-text="option.hw_name + ' | ' + option.hw_type">
-                                                                    </span>
-
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div>
-                        <label class="text-gray-700 dark:text-gray-200" for="hw_serial_number">Hardware Serial
-                            Number</label>
-                        <input name="hw_serial_number" id="hw_serial_number" type="text" required
-                            value="{{ old('hw_serial_number') }}"
-                            class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">
-
-                    </div>
-                    <button type="submit"
-                        class=" mt-5 text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
-                        Create Hardware
-                    </button>
-                </form>
-
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<div id="import-modal" tabindex="-1" aria-hidden="true"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="relative p-4 w-full max-w-2xl max-h-full">
-        <!-- Modal content -->
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <!-- Modal header -->
-            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    Import Hardware
-                </h3>
-                <button type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                    data-modal-hide="import-modal">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <!-- Modal body -->
-            <div class="p-4 md:p-5 space-y-4">
-
-                <form action="{{route('master-data.hardware.import')}}" method="post" enctype="multipart/form-data">
-                    @csrf
-                    <div>
-                        <label class="text-gray-700 dark:text-gray-200" for="hardware_name">Assign Hardware to
-                            Customer</label>
-                        <input type="hidden" name="customer_id" id="customer_id">
-                        <div class="flex flex-col items-center">
-                            <div class="w-full  flex flex-col items-center">
-                                <div class="w-full">
-                                    <div x-data="selectUserConfigs()" x-init="fetchOptions()"
-                                        class="flex flex-col items-center relative">
-                                        <div class="w-full">
-                                            <div @click.away="close()"
-                                                class="my-2 p-1 bg-white flex border border-gray-200 rounded">
-                                                <input x-model="filter"
-                                                    x-transition:leave="transition ease-in duration-100"
-                                                    x-transition:leave-start="opacity-100"
-                                                    x-transition:leave-end="opacity-0" @mousedown="open()"
-                                                    @keydown.enter.stop.prevent="selectOption()"
-                                                    @keydown.arrow-up.prevent="focusPrevOption()"
-                                                    @keydown.arrow-down.prevent="focusNextOption()"
-                                                    class="p-1 px-2 appearance-none outline-none w-full text-gray-800">
-                                                <div
-                                                    class="text-gray-300 w-8 py-1 pl-2 pr-1 border-l flex items-center border-gray-200">
-                                                    <button @click="toggle()" type="button"
-                                                        class="cursor-pointer w-6 h-6 text-gray-600 outline-none focus:outline-none">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="100%"
-                                                            height="100%" fill="none" viewBox="0 0 24 24"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <polyline x-show="!isOpen()" points="18 15 12 20 6 15">
-                                                            </polyline>
-                                                            <polyline x-show="isOpen()" points="18 15 12 9 6 15">
-                                                            </polyline>
-                                                        </svg>
-
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div x-show="isOpen()"
-                                            class="absolute shadow bg-white top-100 z-40 w-full lef-0 rounded max-h-select overflow-y-auto svelte-5uyqqj">
-                                            <div class="flex flex-col w-full">
-                                                <template x-for="(option, index) in filteredOptions()" :key="index">
-                                                    <div @click="onOptionClick(index)"
-                                                        :class="classOption(option.id, index)"
-                                                        :aria-selected="focusedOptionIndex === index">
-                                                        <div
-                                                            class="flex w-full items-center p-2 pl-2 border-transparent border-l-2 relative hover:border-teal-100">
-
-                                                            <div class="w-full items-center flex">
-                                                                <div class="mx-2 -mt-1">
-                                                                    <span
-                                                                        x-text="option.name + ' | ' + option.group_name">
-                                                                    </span>
-
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div>
-                        <label class="text-gray-700 dark:text-gray-200" for="hw_image">Hardware Image</label>
-                        <input name="hw_image" id="hw_image" type="file" required accept="image/*"
-                            class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">
-
-                    </div>
-                    <div>
-                        <label class="text-gray-700 dark:text-gray-200" for="hw_file">Excel File</label>
-                        <input name="hw_file" id="hw_file" type="file" required accept=".xlsx, .xls, .csv"
-                            class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">
-                    </div>
-                    <button type="submit"
-                        class=" mt-5 text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
-                        Import Hardware
-                    </button>
-                </form>
-
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<div id="assign-modal" tabindex="-1" aria-hidden="true"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="relative p-4 w-full max-w-2xl max-h-full">
-        <!-- Modal content -->
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <!-- Modal header -->
-            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    Assign Hardware to Customer
-                </h3>
-                <button type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                    data-modal-hide="assign-modal">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
-            <!-- Modal body -->
-            <div class="p-4 md:p-5 space-y-4">
-
-                <form action="{{route('master-data.hardware.assign')}}" method="post">
-                    @csrf
-                    <input type="hidden" name="hardware_id" >
-                    <div>
-                        <label class="text-gray-700 dark:text-gray-200" for="hardware_name">Assign Hardware to
-                            Customer</label>
-                        <input type="hidden" name="customer_id" id="customer_id">
-                        <div class="flex flex-col items-center">
-                            <div class="w-full  flex flex-col items-center">
-                                <div class="w-full">
-                                    <div x-data="selectUserConfigs()" x-init="fetchOptions()"
-                                        class="flex flex-col items-center relative">
-                                        <div class="w-full">
-                                            <div @click.away="close()"
-                                                class="my-2 p-1 bg-white flex border border-gray-200 rounded">
-                                                <input x-model="filter"
-                                                    x-transition:leave="transition ease-in duration-100"
-                                                    x-transition:leave-start="opacity-100"
-                                                    x-transition:leave-end="opacity-0" @mousedown="open()"
-                                                    @keydown.enter.stop.prevent="selectOption()"
-                                                    @keydown.arrow-up.prevent="focusPrevOption()"
-                                                    @keydown.arrow-down.prevent="focusNextOption()"
-                                                    class="p-1 px-2 appearance-none outline-none w-full text-gray-800">
-                                                <div
-                                                    class="text-gray-300 w-8 py-1 pl-2 pr-1 border-l flex items-center border-gray-200">
-                                                    <button @click="toggle()" type="button"
-                                                        class="cursor-pointer w-6 h-6 text-gray-600 outline-none focus:outline-none">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="100%"
-                                                            height="100%" fill="none" viewBox="0 0 24 24"
-                                                            stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <polyline x-show="!isOpen()" points="18 15 12 20 6 15">
-                                                            </polyline>
-                                                            <polyline x-show="isOpen()" points="18 15 12 9 6 15">
-                                                            </polyline>
-                                                        </svg>
-
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div x-show="isOpen()"
-                                            class="absolute shadow bg-white top-100 z-40 w-full lef-0 rounded max-h-select overflow-y-auto svelte-5uyqqj">
-                                            <div class="flex flex-col w-full">
-                                                <template x-for="(option, index) in filteredOptions()" :key="index">
-                                                    <div @click="onOptionClick(index)"
-                                                        :class="classOption(option.id, index)"
-                                                        :aria-selected="focusedOptionIndex === index">
-                                                        <div
-                                                            class="flex w-full items-center p-2 pl-2 border-transparent border-l-2 relative hover:border-teal-100">
-
-                                                            <div class="w-full items-center flex">
-                                                                <div class="mx-2 -mt-1">
-                                                                    <span
-                                                                        x-text="option.name + ' | ' + option.group_name">
-                                                                    </span>
-
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-               
-                    <button type="submit"
-                        class=" mt-5 text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
-                      Save
-                    </button>
-                </form>
-
-            </div>
-
-        </div>
-    </div>
-</div>
+@include('master-data.hardware.partials.copy-modal')
+@include('master-data.hardware.partials.import-modal')
+@include('master-data.hardware.partials.assign-modal')
 
 @endsection

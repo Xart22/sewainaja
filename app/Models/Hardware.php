@@ -17,4 +17,9 @@ class Hardware extends Model
     {
         return $this->belongsTo(Customer::class, 'customer_id');
     }
+
+    public function customerContract()
+    {
+        return $this->belongsTo(CustomerContract::class, 'customer_contract_id');
+    }
 }

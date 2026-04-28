@@ -142,6 +142,27 @@ Customer
                         value="{{ $date = date('Y-m-d', strtotime($customer->expired_at)) }}"
                         class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">
                 </div>
+
+                <div class="col-span-2 mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Add New Contract (Optional)</h2>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Use this section to append a new contract period for this existing customer.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="text-gray-700 dark:text-gray-200" for="new_contract_start_date">New Contract Start Date</label>
+                    <input name="new_contract_start_date" id="new_contract_start_date" type="date"
+                        value="{{ old('new_contract_start_date') }}"
+                        class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">
+                </div>
+
+                <div>
+                    <label class="text-gray-700 dark:text-gray-200" for="new_contract_end_date">New Contract End Date</label>
+                    <input name="new_contract_end_date" id="new_contract_end_date" type="date"
+                        value="{{ old('new_contract_end_date') }}"
+                        class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">
+                </div>
             </div>
             <div id="map" class="w-full h-[450px] mt-5"></div>
             <button type="submit"

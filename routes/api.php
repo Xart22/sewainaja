@@ -39,5 +39,6 @@ Route::get('/customer-support', [CustomerSupportController::class, 'getData'])->
 Route::get('/hardware-data', [HardwareController::class, 'getData'])->name('hardware-data');
 
 Route::get('/customer-data', [CustomerController::class, 'getData'])->name('customer-data');
+Route::get('/customer-contracts/{customer}', [CustomerController::class, 'getContracts'])->name('customer-contracts');
 
 Route::get('/get-teknisi', [CustomerSupportController::class, 'getTeknisi'])->name('get-teknisi');

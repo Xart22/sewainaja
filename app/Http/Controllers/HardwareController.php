@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\HardwareExport;
 use App\Imports\HardwareImport;
+use App\Models\CustomerContract;
 use App\Models\Hardware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -23,7 +25,7 @@ class HardwareController extends Controller
         return view(
             'master-data.hardware.index',
             [
-                'hardwares' => Hardware::all()
+                'hardwares' => Hardware::with(['customer', 'customerContract'])->get()
             ]
         );
     }
@@ -154,6 +156,7 @@ class HardwareController extends Controller
         $newHardware = $hardware->replicate();
         $newHardware->hw_serial_number = $request->hw_serial_number;
         $newHardware->customer_id = null;
+        $newHardware->customer_contract_id = null;
         $newHardware->used_status = 0;
         $newHardware->save();
 
@@ -219,6 +222,8 @@ class HardwareController extends Controller
             foreach ($data[0] as $row) {
                 // Validate each row before importing
                 if (isset($row['hw_name'], $row['hw_type'], $row['hw_brand'], $row['hw_model'], $row['hw_serial_number'])) {
+                    $contractId = $this->resolveContractId($request->customer_id);
+
                     Hardware::create([
                         'hw_name' => $row['hw_name'],
                         'hw_type' => $row['hw_type'],
@@ -230,6 +235,7 @@ class HardwareController extends Controller
                         'hw_bw_color' => $row['hw_bw_color'] ?? null,
                         'hw_description' => $row['hw_description'] ?? null,
                         'customer_id' => $request->customer_id ?? null,
+                        'customer_contract_id' => $request->customer_id ? $contractId : null,
                         'used_status' => $request->customer_id == null ? 0 : 1,
                         'hw_image' => isset($filename) ? Storage::url('images/' . $filename) : null,
                     ]);
@@ -253,8 +259,32 @@ class HardwareController extends Controller
 
     public function assign(Request $request)
     {
+        $request->validate([
+            'hardware_id' => 'required|exists:hardware,id',
+            'customer_id' => 'required|exists:customers,id',
+            'customer_contract_id' => 'nullable|exists:customer_contracts,id',
+        ]);
+
+        if ($request->customer_contract_id) {
+            $selectedContract = CustomerContract::where('id', $request->customer_contract_id)
+                ->where('customer_id', $request->customer_id)
+                ->first();
+
+            if (!$selectedContract) {
+                return redirect()->route('master-data.hardware.index')
+                    ->with('error', 'Kontrak yang dipilih tidak valid untuk customer tersebut.');
+            }
+        }
+
+        $contractId = $request->customer_contract_id ?: $this->resolveContractId((int) $request->customer_id);
+        if (!$contractId) {
+            return redirect()->route('master-data.hardware.index')
+                ->with('error', 'Customer tidak memiliki kontrak. Tambahkan kontrak terlebih dahulu.');
+        }
+
         $hardware = Hardware::find($request->hardware_id);
         $hardware->customer_id = $request->customer_id;
+        $hardware->customer_contract_id = $contractId;
         $hardware->used_status = 1; // Set to used
         $hardware->save();
 
@@ -266,10 +296,44 @@ class HardwareController extends Controller
     {
         $hardware = Hardware::find($id);
         $hardware->customer_id = null;
+        $hardware->customer_contract_id = null;
         $hardware->used_status = 0; // Set to unused
         $hardware->save();
 
         return redirect()->route('master-data.hardware.index')
             ->with('success', 'Hardware assignment removed successfully.');
+    }
+
+    public function export()
+    {
+        $fileName = 'hardware_export_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new HardwareExport, $fileName);
+    }
+
+    private function resolveContractId(?int $customerId): ?int
+    {
+        if (!$customerId) {
+            return null;
+        }
+
+        $now = now();
+
+        $activeContract = CustomerContract::where('customer_id', $customerId)
+            ->where('contract_start', '<=', $now)
+            ->where('contract_end', '>=', $now)
+            ->orderByDesc('contract_end')
+            ->first();
+
+        if ($activeContract) {
+            return $activeContract->id;
+        }
+
+        $latestContract = CustomerContract::where('customer_id', $customerId)
+            ->orderByDesc('contract_end')
+            ->orderByDesc('id')
+            ->first();
+
+        return $latestContract?->id;
     }
 }
