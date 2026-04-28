@@ -72,16 +72,22 @@ class CustomerSupportController extends Controller
         $title = 'Tiket Baru Diterima dengan Nomor Tiket ' . $data->no_ticket;
         $message = 'Anda mendapatkan tiket baru dengan nomor tiket ' . $data->no_ticket . '. Silahkan cek aplikasi Anda untuk melihat detail tiket.';
         foreach ($cso as $item) {
-            if($item->fcm_token == null){
+            if ($item->fcm_token == null) {
                 continue;
             }
             $response = $this->fcmService->sendNotification($item->fcm_token, $title, $message);
 
             if (isset($response['error'])) {
-                return response()->json([
-                    'message' => 'Failed to send notification',
-                    'error' => $response['error'],
-                ], 500);
+                //force logout cso yang tokennya bermasalah
+                $item->fcm_token = null;
+                $item->tokens()->delete();
+                $item->save();
+
+
+                // return response()->json([
+                //     'message' => 'Failed to send notification',
+                //     'error' => $response['error'],
+                // ], 500);
             }
         }
         broadcast(new RequestSupport($data, 'Waiting'));
@@ -186,7 +192,7 @@ class CustomerSupportController extends Controller
         }
 
         $data = CustomerSupport::where('no_ticket', $id)->first();
-      
+
         if (!$data) {
             return redirect()->route('not-found');
         }
