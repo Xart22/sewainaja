@@ -78,10 +78,16 @@ class CustomerSupportController extends Controller
             $response = $this->fcmService->sendNotification($item->fcm_token, $title, $message);
 
             if (isset($response['error'])) {
-                return response()->json([
-                    'message' => 'Failed to send notification',
-                    'error' => $response['error'],
-                ], 500);
+                //force logout cso yang tokennya bermasalah
+                $item->fcm_token = null;
+                $item->tokens()->delete();
+                $item->save();
+
+
+                // return response()->json([
+                //     'message' => 'Failed to send notification',
+                //     'error' => $response['error'],
+                // ], 500);
             }
         }
         broadcast(new RequestSupport($data, 'Waiting'));

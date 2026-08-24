@@ -15,4 +15,14 @@ class Customer extends Model
     {
         return $this->hasMany(Hardware::class, 'customer_id', 'id');
     }
+
+    public function contracts()
+    {
+        return $this->hasMany(CustomerContract::class, 'customer_id', 'id');
+    }
+
+    public function latestContract()
+    {
+        return $this->hasOne(CustomerContract::class, 'customer_id', 'id')->latestOfMany('contract_end');
+    }
 }

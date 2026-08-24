@@ -137,6 +137,38 @@ Customer
         </div>
         <div id="map" class="w-full h-[450px] mt-5"></div>
         <div class="mt-5">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">Contract History</h2>
+            <div class="mt-3">
+                @if($customer->contracts->count() > 0)
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Start</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                End</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                        @foreach($customer->contracts as $contract)
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $contract->contract_start }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ $contract->contract_end }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{ now()->between($contract->contract_start, $contract->contract_end) ? 'Active' : 'Inactive' }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                @else
+                <p class="text-gray-500">No contract history available.</p>
+                @endif
+            </div>
+        </div>
+        <div class="mt-5">
             <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">Hardware Assigned</h2>
             <div class="mt-3">
                 @if($customer->hardware->count() > 0)

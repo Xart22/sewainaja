@@ -15,13 +15,21 @@ Hardware
 
     const canvas = document.createElement("canvas");
     const svgSize = qrCode.viewBox.baseVal.width;
+    const textAreaHeight = 48;
     canvas.width = svgSize;
-    canvas.height = svgSize;
+    canvas.height = svgSize + textAreaHeight;
     const ctx = canvas.getContext("2d");
     const img = new Image();
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
     img.onload = function () {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, svgSize, svgSize);
+        ctx.fillStyle = "#111827";
+        ctx.font = "600 18px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(hw_sn, svgSize / 2, svgSize + (textAreaHeight / 2));
         const pngFile = canvas.toDataURL("image/png");
         const downloadLink = document.createElement("a");
         downloadLink.href = pngFile;
@@ -91,6 +99,9 @@ Hardware
             <div class="flex flex-col items-center" id="qrCode">
                 QR Code
                 {{$qrCode}}
+                <p class="mt-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    SN :{{ $hardware->hw_serial_number }}
+                </p>
             </div>
 
 
@@ -104,7 +115,7 @@ Hardware
             <button type="button"
                 onclick="downloadQRCode('{{ $hardware->hw_name }}','{{ $hardware->hw_serial_number }}')"
                 class="mt-3 text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                Donwload QR Code
+                Download QR Code
             </button>
             <a href="{{ route('master-data.hardware.edit', $hardware->id) }}"
                 class="mt-3 text-white bg-[#F59E0B] hover:bg-yellow-800 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800">
