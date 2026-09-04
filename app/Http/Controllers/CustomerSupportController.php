@@ -110,10 +110,10 @@ class CustomerSupportController extends Controller
         $nomorTiket = urlencode($data->no_ticket);
         $namaCSO = urlencode(Auth::user()->name);
 
-        if ($data->status_cso == "Responded") {
+        if ($data->status_cso == "Responded" && $data->status_teknisi != "Done" && $data->work_report == null) {
             $template = "https://api.whatsapp.com/send?phone={$nomorWA}";
         }
-        if ($data->status_teknisi == "Done") {
+        if ($data->status_teknisi == "Done" || ($data->teknisi_id == null && $data->work_report != null)) {
             broadcast(new RequestSupport($data, 'Waiting'));
             $linkCloseTiket = urlencode('https://cs.disewainaja.co.id/customer-support/close-ticket/' . $data->no_ticket);
             $template = "https://api.whatsapp.com/send?phone={$nomorWA}&text=Halo%20*{$namaPelapor}*%2C%0APerbaikan%20terkait%20laporan%20Anda%20dengan%20Nomor%20Tiket%3A%20*{$nomorTiket}*%20telah%20selesai%20kami%20kerjakan.%20%F0%9F%8F%A1%0A%0AKami%20mohon%20kesediaannya%20untuk%20melakukan%20pengecekan%20dan%20meng-close%20tiket%20jika%20masalah%20telah%20terselesaikan.%20%F0%9F%98%8A%0A%0ASilakan%20klik%20link%20berikut%20untuk%20meng-close%20tiket%3A%0A{$linkCloseTiket}%0A%0AJika%20masih%20ada%20kendala%2C%20jangan%20ragu%20untuk%20menghubungi%20kami%20kembali.%20Terima%20kasih%20telah%20mempercayai%20Disewainaja.co.id.%20%F0%9F%99%8F";
@@ -136,6 +136,38 @@ class CustomerSupportController extends Controller
         return redirect()->away($template);
     }
 
+    public function closeRemote(Request $request)
+    {
+        $request->validate([
+            'ticket_id' => 'required',
+            'work_report' => 'required|string',
+        ]);
+
+        $data = CustomerSupport::find($request->ticket_id);
+
+        if (!$data) {
+            return redirect()->back()->with(['error' => 'Data tidak ditemukan']);
+        }
+
+        // guard: hanya tiket yang sudah direspon CSO, tanpa teknisi, dan belum punya laporan
+        if ($data->status_cso != 'Responded' || $data->teknisi_id != null || $data->work_report != null) {
+            return redirect()->back()->with(['error' => 'Tiket tidak dapat ditutup melalui remote']);
+        }
+
+        $data->work_report = $request->work_report;
+        $data->status_process = 'Waiting Close by Customer';
+        $data->save();
+
+        CustomerSupportLog::create([
+            'customer_support_id' => $data->id,
+            'user_id' => Auth::user()->id,
+            'status' => 'Success',
+            'message' => Auth::user()->name . ' close by remote for ticket ' . $data->no_ticket . ' dengan laporan: ' . $request->work_report,
+        ]);
+
+        return redirect()->route('send-chat', $data->id);
+    }
+
     public function assignteknisi(Request $request)
     {
         $request->validate([
@@ -151,6 +183,31 @@ class CustomerSupportController extends Controller
             ], 404);
         }
 
+        // reassign: bila tiket sudah punya teknisi berstatus Waiting, wajib menunggu
+        // 5 menit sejak assign sebelumnya (teknisi lama tidak merespons).
+        if ($data->teknisi_id != null && $data->teknisi_id != $request->user_id) {
+            if ($data->status_teknisi == 'Waiting' || $data->status_teknisi == null) {
+                $assignedAt = $data->teknisi_assigned_at ? \Carbon\Carbon::parse($data->teknisi_assigned_at) : null;
+                if (!$assignedAt || $assignedAt->diffInMinutes(now()) < 5) {
+                    return redirect()->back()->with(['error' => 'Teknisi masih dalam masa tunggu respons (5 menit). Silakan tunggu sebelum mengganti teknisi.']);
+                }
+            } else {
+                return redirect()->back()->with(['error' => 'Tiket tidak dapat diganti teknisi karena teknisi sedang memproses pekerjaan.']);
+            }
+        }
+
+        // guard double-job: teknisi baru tidak boleh punya pekerjaan aktif lain
+        // (Waiting / On The Way / Arrived / Working). On Hold tidak dihitung.
+        $aktif = CustomerSupport::where('teknisi_id', $request->user_id)
+            ->where('status_cso', '!=', 'Done')
+            ->where('id', '!=', $data->id)
+            ->whereIn('status_teknisi', ['Waiting', 'On The Way', 'Arrived', 'Working'])
+            ->exists();
+
+        if ($aktif) {
+            return redirect()->back()->with(['error' => 'Teknisi sedang memiliki pekerjaan aktif. Selesaikan atau hold pekerjaan tersebut terlebih dahulu.']);
+        }
+
         $teknisi = User::find($request->user_id);
         $fcm_token = $teknisi->fcm_token;
 
@@ -161,13 +218,11 @@ class CustomerSupportController extends Controller
             $response = $this->fcmService->sendNotification($fcm_token, $title, $message);
 
             if (isset($response['error'])) {
-                return response()->json([
-                    'message' => 'Failed to send notification',
-                    'error' => $response['error'],
-                ], 500);
+                return redirect()->back()->with(['error' => 'Gagal mengirim notifikasi']);
             }
             $data->status_teknisi = 'Waiting';
             $data->teknisi_id = $request->user_id;
+            $data->teknisi_assigned_at = now();
             $data->save();
 
             CustomerSupportLog::create([
@@ -179,7 +234,6 @@ class CustomerSupportController extends Controller
 
             return redirect()->back()->with(['success' => 'Teknisi berhasil diassign']);
         } catch (\Exception $e) {
-            dd($e);
             return  redirect()->back()->with(['error' => 'Gagal mengirim notifikasi']);
         }
     }
@@ -211,9 +265,28 @@ class CustomerSupportController extends Controller
 
     public function closeTicket(Request $request)
     {
+        $request->validate([
+            'id' => 'required|exists:customer_supports,id',
+            'rating_cso' => 'required|integer|min:0|max:5',
+            'rating_teknisi' => 'nullable|integer|min:0|max:5',
+            'ulasan_cso' => 'nullable|string',
+            'ulasan_teknisi' => 'nullable|string',
+        ]);
+
         $data = CustomerSupport::find($request->id);
 
         if (!$data) {
+            return redirect()->route('not-found');
+        }
+
+        // guard: cegah close ganda / close langsung padahal belum siap ditutup customer
+        if ($data->status_cso == 'Done' || $data->status_process == 'Closed') {
+            return redirect()->route('not-found');
+        }
+        if ($data->status_cso != 'Responded' || $data->work_report == null) {
+            return redirect()->route('not-found');
+        }
+        if ($data->teknisi_id != null && $data->status_teknisi != 'Done') {
             return redirect()->route('not-found');
         }
 
@@ -228,7 +301,7 @@ class CustomerSupportController extends Controller
             'rating_cso' => $request->rating_cso,
             'ulasan_cso' => $request->ulasan_cso,
             'teknisi_id' => $data->teknisi_id,
-            'rating_teknisi' => $request->rating_teknisi,
+            'rating_teknisi' => $request->rating_teknisi ?: 0,
             'ulasan_teknisi' => $request->ulasan_teknisi,
         ]);
 
@@ -257,8 +330,4 @@ class CustomerSupportController extends Controller
         return view('dashboard.tracking');
     }
 
-    public function tes()
-    {
-        broadcast(new RequestSupport(CustomerSupport::find(1), 'Baru'));
-    }
 }

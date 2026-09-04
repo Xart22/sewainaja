@@ -6,6 +6,7 @@ use App\Exports\HardwareExport;
 use App\Imports\HardwareImport;
 use App\Models\CustomerContract;
 use App\Models\Hardware;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +53,7 @@ class HardwareController extends Controller
         ]);
 
         $file = $request->file('hardware_image');
-        $filename = time() . '_' . $file->getClientOriginalName();
+        $filename = $this->sanitizeUploadFilename($file->getClientOriginalName(), $file->getClientOriginalExtension());
         Storage::disk('public')->putFileAs('images', $file, $filename);
 
 
@@ -127,10 +128,10 @@ class HardwareController extends Controller
 
         if ($request->hasFile('hardware_image')) {
             $file = $request->file('hardware_image');
-            $filename = time() . '_' . $file->getClientOriginalName();
+            $filename = $this->sanitizeUploadFilename($file->getClientOriginalName(), $file->getClientOriginalExtension());
             Storage::disk('public')->putFileAs('images', $file, $filename);
             Storage::delete('public/images/' . basename($hardware->hw_image));
-            $hardware->hw_image = Storage::url('public/images/' . $filename);
+            $hardware->hw_image = Storage::url('images/' . $filename);
         }
 
         $hardware->save();
@@ -148,6 +149,16 @@ class HardwareController extends Controller
 
         return redirect()->route('master-data.hardware.index')
             ->with('success', 'Hardware Information deleted successfully.');
+    }
+
+    public function destroyBulk(Request $request)
+    {
+        $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
+
+        $count = Hardware::whereIn('id', $request->input('ids'))->delete();
+
+        return redirect()->route('master-data.hardware.index')
+            ->with('success', $count . ' Hardware deleted successfully.');
     }
 
     public function copyHardware(Request $request)
@@ -215,7 +226,7 @@ class HardwareController extends Controller
             $data = Excel::toCollection(new HardwareImport, $request->file('hw_file'));
             $image = $request->file('hw_image');
             if ($image) {
-                $filename = time() . '_' . $image->getClientOriginalName();
+                $filename = $this->sanitizeUploadFilename($image->getClientOriginalName(), $image->getClientOriginalExtension());
                 Storage::disk('public')->putFileAs('images', $image, $filename);
             }
             DB::beginTransaction();
@@ -304,11 +315,89 @@ class HardwareController extends Controller
             ->with('success', 'Hardware assignment removed successfully.');
     }
 
-    public function export()
+    public function export(Request $request)
     {
         $fileName = 'hardware_export_' . now()->format('Ymd_His') . '.xlsx';
+        $ids = $request->filled('ids') ? $request->input('ids') : null;
 
-        return Excel::download(new HardwareExport, $fileName);
+        return Excel::download(new HardwareExport($ids), $fileName);
+    }
+
+    public function exportSelected(Request $request)
+    {
+        $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
+
+        return $this->export($request);
+    }
+
+    public function exportQrPdf(Request $request)
+    {
+        $tempDir = storage_path('app/private/qr-temp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0775, true);
+        }
+
+        $query = Hardware::whereNotNull('customer_id')->with('customer');
+        if ($request->filled('ids')) {
+            $query->whereIn('id', $request->input('ids'));
+        }
+
+        $hardwares = $query->get()
+            ->map(function ($hardware) use ($tempDir) {
+                $qrFile = $tempDir . '/' . uniqid('qr_', true) . '.png';
+                $this->qrPng(route('customer-online', Crypt::encrypt($hardware->hw_serial_number)), $qrFile, 300);
+                $hardware->qr_path = $qrFile;
+
+                return $hardware;
+            });
+
+        try {
+            $fileName = 'qr_codes_' . now()->format('Ymd_His') . '.pdf';
+
+            return Pdf::loadView('master-data.hardware.pdf-qr-codes', ['hardwares' => $hardwares])
+                ->setPaper('a4')
+                ->download($fileName);
+        } finally {
+            foreach ($hardwares as $hardware) {
+                @unlink($hardware->qr_path);
+            }
+        }
+    }
+
+    /**
+     * Render QR dari matriks BaconQrCode ke PNG via GD (tanpa SVG/imagick).
+     * dompdf tidak merender SVG inline, jadi PNG disimpan sementara untuk <img>.
+     */
+    private function qrPng(string $content, string $destPath, int $size = 300): void
+    {
+        $qrCode = \BaconQrCode\Encoder\Encoder::encode($content, \BaconQrCode\Common\ErrorCorrectionLevel::M());
+        $matrix = $qrCode->getMatrix();
+        $n = $matrix->getWidth();
+        $margin = 2;
+        $scale = (int) floor($size / ($n + $margin * 2));
+
+        $img = imagecreatetruecolor($size, $size);
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $black = imagecolorallocate($img, 0, 0, 0);
+        imagefill($img, 0, 0, $white);
+
+        for ($y = 0; $y < $n; $y++) {
+            for ($x = 0; $x < $n; $x++) {
+                if ($matrix->get($x, $y)) {
+                    imagefilledrectangle(
+                        $img,
+                        ($x + $margin) * $scale,
+                        ($y + $margin) * $scale,
+                        ($x + $margin + 1) * $scale - 1,
+                        ($y + $margin + 1) * $scale - 1,
+                        $black
+                    );
+                }
+            }
+        }
+
+        imagepng($img, $destPath);
+        imagedestroy($img);
     }
 
     private function resolveContractId(?int $customerId): ?int
@@ -335,5 +424,22 @@ class HardwareController extends Controller
             ->first();
 
         return $latestContract?->id;
+    }
+
+    /**
+     * Nama file sanitasi: prefix unik + slug base name, ekstensi tunggal dari $ext param.
+     * Mencegah spasi/karakter URL-unsafe & ekstensi ganda (.jpg.jpeg) yang bikin gambar 403/404.
+     */
+    private function sanitizeUploadFilename(string $originalName, string $ext = '', string $prefix = ''): string
+    {
+        $prefix = $prefix ?: (string) time();
+        $ext = preg_replace('/[^a-z0-9]/', '', strtolower($ext)) ?: 'jpg';
+        $originalName = strtolower($originalName);
+        $originalName = preg_replace('/(?:\.[a-z0-9]+)+$/', '', $originalName); // buang semua ekstensi (.jpg.jpeg -> kosong)
+        $originalName = preg_replace('/[^a-z0-9._-]+/', '-', $originalName); // karakter aneh -> '-'
+        $originalName = trim($originalName, '-._');
+        $originalName = substr($originalName ?: 'image', 0, 60);
+
+        return $prefix . '_' . $originalName . '.' . $ext;
     }
 }

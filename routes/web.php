@@ -21,6 +21,7 @@ Route::post('/login', [AuthController::class, 'authenticate'])->name('authentica
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/customer-support/send/{id}', [CustomerSupportController::class, 'sendChatWeb'])->name('send-chat');
+    Route::post('/customer-support/close-remote', [CustomerSupportController::class, 'closeRemote'])->name('close-remote');
     Route::post('/customer-support/assign-teknisi', [CustomerSupportController::class, 'assignteknisi'])->name('assign-teknisi-web');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
@@ -32,6 +33,10 @@ Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () 
     Route::get('/master-data/hardware', [HardwareController::class, 'index'])->name('master-data.hardware.index');
     Route::get('/master-data/hardware/create', [HardwareController::class, 'create'])->name('master-data.hardware.create');
     Route::get('/master-data/hardware/export', [HardwareController::class, 'export'])->name('master-data.hardware.export');
+    Route::post('/master-data/hardware/export-selected', [HardwareController::class, 'exportSelected'])->name('master-data.hardware.export-selected');
+    Route::post('/master-data/hardware/export-qr-pdf-selected', [HardwareController::class, 'exportQrPdf'])->name('master-data.hardware.export-qr-pdf-selected');
+    Route::post('/master-data/hardware/destroy-bulk', [HardwareController::class, 'destroyBulk'])->name('master-data.hardware.destroy-bulk');
+    Route::get('/master-data/hardware/export-qr-pdf', [HardwareController::class, 'exportQrPdf'])->name('master-data.hardware.export-qr-pdf');
     Route::post('/master-data/hardware', [HardwareController::class, 'store'])->name('master-data.hardware.store');
     Route::get('/master-data/hardware/{id}', [HardwareController::class, 'show'])->name('master-data.hardware.show');
     Route::get('/master-data/hardware/{id}/edit', [HardwareController::class, 'edit'])->name('master-data.hardware.edit');
@@ -45,6 +50,9 @@ Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () 
 
     // master data customer
     Route::get('/master-data/customer', [CustomerController::class, 'index'])->name('master-data.customer.index');
+    Route::get('/master-data/customer/export', [CustomerController::class, 'export'])->name('master-data.customer.export');
+    Route::post('/master-data/customer/export-selected', [CustomerController::class, 'exportSelected'])->name('master-data.customer.export-selected');
+    Route::post('/master-data/customer/destroy-bulk', [CustomerController::class, 'destroyBulk'])->name('master-data.customer.destroy-bulk');
     Route::get('/master-data/customer/create', [CustomerController::class, 'create'])->name('master-data.customer.create');
     Route::post('/master-data/customer', [CustomerController::class, 'store'])->name('master-data.customer.store');
     Route::get('/master-data/customer/{id}', [CustomerController::class, 'show'])->name('master-data.customer.show');
@@ -62,11 +70,10 @@ Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () 
     Route::delete('/manage-user/{id}', [UserController::class, 'destroy'])->name('manage-user.destroy');
     Route::get('/data-permohonan/{start_date}/{end_date}', [CustomerSupportDataController::class, 'index'])->name('data-permohonan.index');
     Route::get('/data-permohonan-export/{start_date}/{end_date}', [CustomerSupportDataController::class, 'export'])->name('data-permohonan.export');
+    Route::get('/data-permohonan-export-nologs/{start_date}/{end_date}', [CustomerSupportDataController::class, 'exportNoLogs'])->name('data-permohonan.export-nologs');
 });
 
 Route::get('/tracking', [CustomerSupportController::class, 'tracking'])->name('tracking');
-
-Route::get('/tes', [CustomerSupportController::class, 'tes']);
 
 Route::get('/customer-support/{hased}', [CustomerSupportController::class, 'customerOnline'])->name('customer-online');
 Route::get('/customer-support', [CustomerSupportController::class, 'submission'])->name('customer-support.submission');

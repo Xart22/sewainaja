@@ -21,6 +21,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/update-password', [AuthController::class, 'updatePassword']);
 
     Route::get('/customer-support/send-chat/{id}', [CustomerSupportController::class, 'sendChatApi'])->name('send-chat-api');
+    Route::post('/customer-support/close-remote', [CustomerSupportController::class, 'closeRemote'])->name('close-remote-api');
     Route::post('/customer-support/assign-teknisi', [CustomerSupportController::class, 'assignteknisi'])->name('assign-teknisi');
     Route::get('/customer-support/get-customer-support', [CustomerSupportController::class, 'getDataCso'])->name('get-customer-support');
     Route::get('/teknisi/get-customer-support', [CustomerSupportController::class, 'getDataTeknisi'])->name('get-customer-support-teknisi');

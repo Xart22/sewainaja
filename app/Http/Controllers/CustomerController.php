@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\CustomerExport;
 use App\Models\Customer;
 use App\Models\CustomerContract;
 use App\Models\Hardware;
@@ -9,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
@@ -40,6 +42,7 @@ class CustomerController extends Controller
             'customer_email' => 'nullable|email|max:255|unique:customers,email',
             'customer_phone_number' => 'required|string|max:255|unique:customers,phone_number',
             'customer_address' => 'required|string',
+            'customer_notes' => 'nullable|string',
             'contract_start_date' => 'required|date',
             'contract_end_date' => 'required|date|after_or_equal:contract_start_date',
         ]);
@@ -63,6 +66,7 @@ class CustomerController extends Controller
                 'longitude' => $request->longitude,
                 'contract_start' => $request->contract_start_date,
                 'expired_at' => $request->contract_end_date,
+                'notes' => $request->customer_notes,
             ]);
 
             $this->syncContractHistory(
@@ -117,6 +121,7 @@ class CustomerController extends Controller
             'customer_email' => 'nullable|email|max:255|unique:customers,email,' . $id,
             'customer_phone_number' => 'required|string|max:255|unique:customers,phone_number,' . $id,
             'customer_address' => 'required|string',
+            'customer_notes' => 'nullable|string',
             'contract_start_date' => 'required|date',
             'contract_end_date' => 'required|date|after_or_equal:contract_start_date',
             'new_contract_start_date' => 'nullable|date|required_with:new_contract_end_date',
@@ -141,6 +146,7 @@ class CustomerController extends Controller
                 'longitude' => $request->longitude,
                 'contract_start' => $request->contract_start_date,
                 'expired_at' => $request->contract_end_date,
+                'notes' => $request->customer_notes,
             ]);
 
             $customer = Customer::findOrFail($id);
@@ -186,6 +192,43 @@ class CustomerController extends Controller
             return redirect()->route('master-data.customer.index')->with('success', 'Customer deleted successfully');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Failed to delete customer');
+        }
+    }
+
+    public function export()
+    {
+        $fileName = 'customers_' . date('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(new CustomerExport, $fileName);
+    }
+
+    public function exportSelected(Request $request)
+    {
+        $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
+        $fileName = 'customers_' . date('Y-m-d_His') . '.xlsx';
+
+        return Excel::download(new CustomerExport($request->input('ids')), $fileName);
+    }
+
+    public function destroyBulk(Request $request)
+    {
+        $request->validate(['ids' => 'required|array', 'ids.*' => 'integer']);
+
+        try {
+            DB::beginTransaction();
+            $customers = Customer::whereIn('id', $request->input('ids'))->get();
+
+            foreach ($customers as $customer) {
+                Hardware::where('customer_id', $customer->id)->update(['customer_id' => null, 'used_status' => 0, 'customer_contract_id' => null]);
+            }
+
+            Customer::whereIn('id', $request->input('ids'))->delete();
+            DB::commit();
+
+            return redirect()->route('master-data.customer.index')->with('success', count($customers) . ' customer deleted successfully');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to delete customers');
         }
     }
 

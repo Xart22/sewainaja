@@ -6,7 +6,7 @@ Customer
 @endsection
 
 @section('header')
-@vite(['resources/js/customer.js'])
+@vite(['resources/js/customer.js', 'resources/js/bulk-select.js'])
 
 @endsection
 
@@ -16,13 +16,38 @@ Customer
 
 
 <div class="mt-14">
-    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Customer</h1>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Customer</h1>
+        <a href="{{ route('master-data.customer.export') }}"
+            class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:bg-emerald-500 dark:hover:bg-emerald-600 dark:focus:ring-emerald-800">
+            Export Excel
+        </a>
+    </div>
+
+    <div id="bulk-toolbar" class="hidden mt-4 flex flex-wrap items-center gap-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 px-4 py-3">
+        <span class="text-sm font-semibold text-indigo-800 dark:text-indigo-200"><span id="bulk-selected-count">0</span> item dipilih</span>
+        <div class="flex flex-wrap gap-2 ms-auto">
+            <button type="button" data-bulk-action data-bulk-form="bulk-export-form"
+                class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                Export Excel Terpilih
+            </button>
+            <button type="button" data-bulk-action data-bulk-form="bulk-destroy-form" data-bulk-confirm="Hapus data customer terpilih?"
+                class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                Hapus Terpilih
+            </button>
+        </div>
+    </div>
+    <form id="bulk-export-form" method="POST" action="{{ route('master-data.customer.export-selected') }}" class="hidden">@csrf</form>
+    <form id="bulk-destroy-form" method="POST" action="{{ route('master-data.customer.destroy-bulk') }}" class="hidden">@csrf @method('DELETE')</form>
 
     <div class="bg-white rounded-lg shadow-lg dark:bg-gray-800  p-5 mt-5">
 
-        <table id="tableCustomer" class="table-auto w-full">
+        <table id="tableCustomer" class="table-auto w-full" data-bulk-select>
             <thead>
                 <tr>
+                    <th class="w-10">
+                        <input type="checkbox" class="select-all rounded border-gray-300">
+                    </th>
                     <th>
                         <span class="flex items-center">
                             No
@@ -101,6 +126,9 @@ Customer
 
                 @foreach ($customers as $customer)
                 <tr>
+                    <td class="text-center">
+                        <input type="checkbox" class="row-select rounded border-gray-300" value="{{ $customer->id }}">
+                    </td>
                     <td>{{$loop->iteration}}</td>
                     <td>{{$customer->group_name}}</td>
                     <td>{{$customer->name}}</td>

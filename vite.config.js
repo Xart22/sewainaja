@@ -11,6 +11,7 @@ export default defineConfig({
                 "resources/js/users.js",
                 "resources/js/tracking.js",
                 "resources/js/hardware.js",
+                "resources/js/bulk-select.js",
                 "resources/js/data-permohonan.js",
                 "resources/js/form-laporan.js",
             ],

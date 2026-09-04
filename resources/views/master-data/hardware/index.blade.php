@@ -3,7 +3,7 @@
 @section('title', 'Hardware')
 
 @section('header')
-@vite(['resources/js/hardware.js'])
+@vite(['resources/js/hardware.js', 'resources/js/bulk-select.js'])
 
 <!-- AlpineJS -->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
@@ -259,18 +259,48 @@ function openAssignModal(el) {
 <div class="mt-14">
     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Hardware</h1>
-        <a href="{{ route('master-data.hardware.export') }}"
-            class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:bg-emerald-500 dark:hover:bg-emerald-600 dark:focus:ring-emerald-800">
-            Export Excel
-        </a>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('master-data.hardware.export-qr-pdf') }}"
+                class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-rose-700 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:bg-rose-500 dark:hover:bg-rose-600 dark:focus:ring-rose-800">
+                Export QR PDF
+            </a>
+            <a href="{{ route('master-data.hardware.export') }}"
+                class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:bg-emerald-500 dark:hover:bg-emerald-600 dark:focus:ring-emerald-800">
+                Export Excel
+            </a>
+        </div>
     </div>
+
+    <div id="bulk-toolbar" class="hidden mt-4 flex flex-wrap items-center gap-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 px-4 py-3">
+        <span class="text-sm font-semibold text-indigo-800 dark:text-indigo-200"><span id="bulk-selected-count">0</span> item dipilih</span>
+        <div class="flex flex-wrap gap-2 ms-auto">
+            <button type="button" data-bulk-action data-bulk-form="bulk-export-form"
+                class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                Export Excel Terpilih
+            </button>
+            <button type="button" data-bulk-action data-bulk-form="bulk-qr-form"
+                class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700">
+                Export QR PDF Terpilih
+            </button>
+            <button type="button" data-bulk-action data-bulk-form="bulk-destroy-form" data-bulk-confirm="Hapus data hardware terpilih?"
+                class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                Hapus Terpilih
+            </button>
+        </div>
+    </div>
+    <form id="bulk-export-form" method="POST" action="{{ route('master-data.hardware.export-selected') }}" class="hidden">@csrf</form>
+    <form id="bulk-qr-form" method="POST" action="{{ route('master-data.hardware.export-qr-pdf-selected') }}" class="hidden">@csrf</form>
+    <form id="bulk-destroy-form" method="POST" action="{{ route('master-data.hardware.destroy-bulk') }}" class="hidden">@csrf @method('DELETE')</form>
 
     <div class="bg-white rounded-lg shadow-lg dark:bg-gray-800  p-5 mt-5">
 
-        <table id="tableHardware" class="table-auto w-full">
+        <table id="tableHardware" class="table-auto w-full" data-bulk-select>
             <thead>
                 <tr>
                 
+                    <th class="w-10">
+                        <input type="checkbox" class="select-all rounded border-gray-300">
+                    </th>
                     <th>
                         <span class="flex items-center">
                             No
@@ -367,6 +397,9 @@ function openAssignModal(el) {
 
                 <tr>
            
+                    <td class="text-center">
+                        <input type="checkbox" class="row-select rounded border-gray-300" value="{{ $hardware->id }}">
+                    </td>
                     <td>{{$loop->iteration}}</td>
                     <td>{{$hardware->hw_name}}</td>
                     <td>{{$hardware->hw_type}}</td>

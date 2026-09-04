@@ -58,6 +58,12 @@ Customer
                         class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">
                 </div>
 
+                <div class="col-span-2">
+                    <label class="text-gray-700 dark:text-gray-200" for="customer_notes">Notes</label>
+                    <textarea name="customer_notes" id="customer_notes" rows="3"
+                        class="block w-full mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring">{{ old('customer_notes', $customer->notes) }}</textarea>
+                </div>
+
                 <div>
                     <label class="text-gray-700 dark:text-gray-200" for="latitude">Latitude</label>
                     <input name="latitude" id="latitude" type="text" value="{{ $customer->latitude }}" required

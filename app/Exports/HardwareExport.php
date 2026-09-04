@@ -16,6 +16,10 @@ class HardwareExport implements FromCollection, WithHeadings, WithMapping, WithD
 {
     private ?Collection $rows = null;
 
+    public function __construct(private ?array $ids = null)
+    {
+    }
+
     public function collection()
     {
         return $this->rows();
@@ -112,7 +116,10 @@ class HardwareExport implements FromCollection, WithHeadings, WithMapping, WithD
     private function rows(): Collection
     {
         if ($this->rows === null) {
-            $this->rows = Hardware::with(['customer', 'customerContract'])->orderBy('id')->get();
+            $this->rows = Hardware::with(['customer', 'customerContract'])
+                ->when($this->ids, fn ($q) => $q->whereIn('id', $this->ids))
+                ->orderBy('id')
+                ->get();
         }
 
         return $this->rows;

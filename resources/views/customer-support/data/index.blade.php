@@ -9,7 +9,32 @@ Data Permohonan
 
 <script>
     const data = @json($data);
+
+    // Format tanggal/string datetime DB (ISO `YYYY-MM-DDTHH:MM:SS` atau `YYYY-MM-DD HH:MM:SS`)
+    // ke `DD/MM/YYYY HH:MM`. Nilai non-tanggal (mis. "45 menit") ditampilkan apa adanya.
+    window.fmtDateTime = (v) => {
+        if (v === null || v === undefined || v === '') return '-';
+        const s = String(v).replace('T', ' ').trim();
+        // nilai ber-zona (contoh "2026-08-13 08:33:30+00:00" / "...Z") = UTC, ubah ke zona lokal
+        if (/Z$|[+-]\d{2}:\d{2}$/.test(s)) {
+            const d = new Date(s);
+            if (!isNaN(d)) {
+                const p = (n) => String(n).padStart(2, '0');
+                return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+            }
+        }
+        const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ ](\d{2}):(\d{2})/);
+        if (!m) return s;
+        return m[3] + '/' + m[2] + '/' + m[1] + ' ' + m[4] + ':' + m[5];
+    };
+
     document.addEventListener('DOMContentLoaded', function () {
+        // inisialisasi modal detail sekali agar Flowbite tidak memunculkan warning
+        // "Modal with id detail has not been initialized"
+        if (typeof Modal !== 'undefined') {
+            window.modalDetail = new Modal(document.getElementById('detail'));
+        }
+
         document.getElementById('btnexport').addEventListener('click', () => {
             const dateFrom = document.getElementById('dateFrom').value;
             const dateTo   = document.getElementById('dateTo').value;
@@ -18,6 +43,15 @@ Data Permohonan
                 return;
             }
             window.open(`/admin/data-permohonan-export/${dateFrom}/${dateTo}`, '_blank').focus();
+        });
+        document.getElementById('btnexportnologs').addEventListener('click', () => {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo   = document.getElementById('dateTo').value;
+            if (!dateFrom || !dateTo) {
+                alert('Pilih rentang tanggal terlebih dahulu.');
+                return;
+            }
+            window.open(`/admin/data-permohonan-export-nologs/${dateFrom}/${dateTo}`, '_blank').focus();
         });
     });
 </script>
@@ -54,6 +88,13 @@ Data Permohonan
             </svg>
             Export Excel
         </button>
+        <button id="btnexportnologs"
+            class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-semibold shadow flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Export Excel (Tanpa Logs)
+        </button>
     </div>
 
     {{-- Table card --}}
@@ -78,6 +119,7 @@ Data Permohonan
                     <th><span class="flex items-center">Tiba</span></th>
                     <th><span class="flex items-center">Pengerjaan</span></th>
                     <th><span class="flex items-center">Selesai</span></th>
+                    <th><span class="flex items-center">Waktu Resolution</span></th>
                     <th><span class="flex items-center">Aksi</span></th>
                 </tr>
             </thead>
@@ -149,6 +191,8 @@ Data Permohonan
                         <div><dt class="font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Waktu Tiba</dt><dd class="text-gray-800 dark:text-gray-200 mt-0.5" id="d-tiba"></dd></div>
                         <div><dt class="font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Waktu Pengerjaan</dt><dd class="text-gray-800 dark:text-gray-200 mt-0.5" id="d-pengerjaan"></dd></div>
                         <div><dt class="font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Waktu Selesai</dt><dd class="text-gray-800 dark:text-gray-200 mt-0.5" id="d-selesai"></dd></div>
+                        <div><dt class="font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Waktu Resolution</dt><dd class="text-gray-800 dark:text-gray-200 mt-0.5 font-semibold text-emerald-700 dark:text-emerald-400" id="d-resolution"></dd></div>
+                        <div><dt class="font-medium text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Laporan Kegiatan</dt><dd class="text-gray-800 dark:text-gray-200 mt-0.5 break-words" id="d-work-report"></dd></div>
                     </dl>
                 </div>
             </div>
@@ -209,6 +253,7 @@ Data Permohonan
             'On The Way': 'bg-indigo-100 text-indigo-700',
             'Arrived':    'bg-purple-100 text-purple-700',
             'Working':    'bg-orange-100 text-orange-700',
+            'On Hold':    'bg-amber-100 text-amber-700',
             'Repairing':  'bg-orange-100 text-orange-700',
             'Done':       'bg-green-600 text-white',
             'Open':       'bg-red-100 text-red-700',
@@ -229,8 +274,7 @@ Data Permohonan
     };
 
     const detail = (item) => {
-        const modal = new Modal(document.getElementById('detail'));
-        modal.show();
+        (window.modalDetail ?? new Modal(document.getElementById('detail'))).show();
 
         document.getElementById('d-ticket-no').innerText       = `No. Tiket: ${fmt(item.no_ticket)}`;
         document.getElementById('d-nama-pemohon').innerText    = fmt(item.nama_pelapor);
@@ -252,13 +296,15 @@ Data Permohonan
         document.getElementById('d-cso-name').innerText        = fmt(item.cso?.name);
         document.getElementById('d-teknisi-name').innerText    = fmt(item.teknisi?.name);
         document.getElementById('d-teknisi-wa').innerText      = fmt(item.teknisi?.phone_number);
-        document.getElementById('d-created-at').innerText      = fmt(item.created_at);
-        document.getElementById('d-respon-cso').innerText      = fmt(item.waktu_respon_cso);
-        document.getElementById('d-respon-teknisi').innerText  = fmt(item.waktu_respon_teknisi);
+        document.getElementById('d-created-at').innerText      = window.fmtDateTime(item.created_at);
+        document.getElementById('d-respon-cso').innerText      = window.fmtDateTime(item.waktu_respon_cso);
+        document.getElementById('d-respon-teknisi').innerText  = window.fmtDateTime(item.waktu_respon_teknisi);
         document.getElementById('d-perjalanan').innerText      = fmt(item.waktu_perjalanan);
-        document.getElementById('d-tiba').innerText            = fmt(item.waktu_tiba);
+        document.getElementById('d-tiba').innerText            = window.fmtDateTime(item.waktu_tiba);
         document.getElementById('d-pengerjaan').innerText      = fmt(item.waktu_pengerjaan);
-        document.getElementById('d-selesai').innerText         = fmt(item.waktu_selesai);
+        document.getElementById('d-selesai').innerText         = window.fmtDateTime(item.waktu_selesai);
+        document.getElementById('d-resolution').innerText     = fmt(item.resolution_time);
+        document.getElementById('d-work-report').innerText     = fmt(item.work_report);
 
         // Ulasan
         const ulasanCard = document.getElementById('d-ulasan-card');

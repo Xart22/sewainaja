@@ -24,9 +24,8 @@ Dashboard
 @if (session('login'))
 <script>
     window.onload = () => {
-        const welcomeModal = document.getElementById('welcomeModal');
-        const modal = new Modal(welcomeModal);
-        modal.show();
+        window.welcomeModalInstance = window.welcomeModalInstance || new Modal(document.getElementById('welcomeModal'));
+        window.welcomeModalInstance.show();
     }
 </script>
 @endif
@@ -402,7 +401,7 @@ Dashboard
             <div class="relative bg-white rounded-2xl shadow-2xl border border-gray-100 dark:bg-gray-700 p-4 md:p-5">
                 <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4 dark:border-gray-600">
                     <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Detail Tiket & Progress</h2>
-                    <button data-modal-hide="prosesModal" type="button"
+                    <button type="button" onclick="window.prosesModalInstance?.hide()"
                         class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
                         Tutup
                     </button>
@@ -472,6 +471,13 @@ Dashboard
                         <p class="text-base text-gray-600" id="noWaTeknisi"></p>
                         <p class="text-lg font-bold">Lokasi Teknisi</p>
                         <p class="text-base text-gray-600" id="lokasiTeknisi"></p>
+                        <p class="text-lg font-bold">Status Pekerjaan</p>
+                        <p class="text-base text-gray-600" id="statusTeknisiDetail"></p>
+                        <p class="text-base text-gray-500 dark:text-gray-300 text-sm" id="assignTimeInfo"></p>
+                        <div class="hidden rounded-lg border border-amber-200 bg-amber-50 p-3 mt-2" id="holdInfo">
+                            <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide">Sedang Di-Hold</p>
+                            <p class="text-sm text-amber-800 break-words" id="holdReasonText"></p>
+                        </div>
                         <button type="button" data-modal-target="trackModal" data-modal-toggle="trackModal"
                             id="trackTeknisi"
                             class="text-white mt-3 bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
@@ -482,10 +488,14 @@ Dashboard
                             class="text-white mt-3 bg-[#2943D1] hover:bg-yellow-400 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-yellow-500 dark:hover:bg-yellow-600 dark:focus:ring-yellow-700 w-full">
                             Send Estimation Arrival Time to Customer
                         </button>
+                        <button type="button" id="gantiTeknisiBtn"
+                            class="hidden text-white mt-3 bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center w-full">
+                            Ganti Teknisi
+                        </button>
                     </div>
+                </div>
 
-
-                    <div class="bg-white w-full rounded-xl border border-gray-200 p-4 shadow-sm hidden" id="assignteknisi">
+                <div class="bg-white w-full rounded-xl border border-gray-200 p-4 shadow-sm hidden" id="assignteknisi">
                         <form action="{{ route('assign-teknisi-web') }}" method="POST">
                             @csrf
                             <label class="text-gray-700 dark:text-gray-200 font-semibold" for="hardware_name">Tugaskan
@@ -540,7 +550,8 @@ Dashboard
                                                                     <div class="mx-2 -mt-1">
                                                                         <span x-text="option.name">
                                                                         </span>
-
+                                                                        <span x-show="option.is_busy"
+                                                                            class="ms-2 inline-block rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Sibuk</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -558,7 +569,39 @@ Dashboard
                             </button>
                         </form>
                     </div>
-                </div>
+
+                    <div class="bg-white w-full rounded-xl border border-gray-200 p-4 shadow-sm hidden" id="closeremote">
+                        <label class="text-gray-700 dark:text-gray-200 font-semibold" for="work_report_input">Close by
+                            Remote</label>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-2">Masalah terselesaikan via chat tanpa
+                            teknisi? Isi laporan kegiatan, lalu kirim link konfirmasi ke customer.</p>
+                        <form action="{{ route('close-remote') }}" method="POST" onsubmit="return confirm('Pastikan masalah telah terselesaikan via chat. Kirim konfirmasi ke customer?');">
+                            @csrf
+                            <input type="hidden" name="ticket_id" id="ticket_id_remote">
+                            <textarea name="work_report" id="work_report_input" rows="3" required
+                                class="w-full p-2 mt-1 border border-gray-300 rounded-md"
+                                placeholder="Laporan kegiatan yang dilakukan (wajib diisi)"></textarea>
+                            <button type="submit"
+                                class="mt-3 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 w-full">
+                                Kirim Konfirmasi ke Customer
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-white w-full rounded-xl border border-green-200 p-4 shadow-sm hidden" id="menungguKonfirmasi">
+                        <h1 class="text-lg font-bold text-gray-800 dark:text-gray-200">Menunggu Konfirmasi Customer</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Laporan kegiatan sudah dikirim. Customer perlu
+                            mengonfirmasi via link WhatsApp untuk menutup tiket.</p>
+                        <div class="mt-3 rounded-lg border border-gray-200 bg-gray-50 dark:bg-gray-800 p-3">
+                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Laporan
+                                Kegiatan</p>
+                            <p class="text-sm text-gray-800 dark:text-gray-200 break-words" id="workReportPreview"></p>
+                        </div>
+                        <button type="button" id="sendCloseLink"
+                            class="mt-3 text-white bg-[#2943D1] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 w-full">
+                            Kirim Ulang Link WhatsApp
+                        </button>
+                    </div>
                 <div class="bg-[#F9FAFB] rounded-xl border border-gray-200 p-4 mt-4">
                     <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">Logs Aktivitas</h1>
                     <div class="overflow-y-auto h-80 rounded-lg border border-gray-200 bg-white">
@@ -597,7 +640,7 @@ Dashboard
                         Welcome back, {{ Auth::user()->name }}!
                     </p>
                 </div>
-                <button data-modal-hide="welcomeModal" type="button"
+                <button type="button" onclick="window.welcomeModalInstance?.hide()"
                     class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800 w-full">Tutup</button>
             </div>
         </div>
@@ -626,8 +669,8 @@ Dashboard
         const tes =async (data) => {
         currentTicketData = data;
         const prosesModal = document.getElementById('prosesModal');
-        const modal = new Modal(prosesModal); 
-        modal.show();
+        window.prosesModalInstance = window.prosesModalInstance || new Modal(prosesModal);
+        window.prosesModalInstance.show();
         document.getElementById('ticket_id').value = data.id;
         document.getElementById('idTicket').innerText = data.no_ticket;
         document.getElementById('namaPemohon').innerText = data.nama_pelapor;
@@ -673,30 +716,66 @@ Dashboard
             });
 
         if(data.status_teknisi == '' || data.status_teknisi == null){
-            document.getElementById('assignteknisi').classList.remove('hidden');
             document.getElementById('detailTeknisi').classList.add('hidden');
-            
+            document.getElementById('assignteknisi').classList.add('hidden');
+            document.getElementById('closeremote').classList.add('hidden');
+            document.getElementById('menungguKonfirmasi').classList.add('hidden');
+            if(data.work_report){
+                document.getElementById('menungguKonfirmasi').classList.remove('hidden');
+                document.getElementById('workReportPreview').innerText = data.work_report;
+            }else{
+                document.getElementById('assignteknisi').classList.remove('hidden');
+                document.getElementById('closeremote').classList.remove('hidden');
+                document.getElementById('ticket_id_remote').value = data.id;
+            }
         }else{
+            document.getElementById('assignteknisi').classList.add('hidden');
+            document.getElementById('closeremote').classList.add('hidden');
+            document.getElementById('menungguKonfirmasi').classList.add('hidden');
        
-        if(data.status_teknisi == 'Waiting' || data.status_teknisi == 'Accepted' || data.status_teknisi == 'On The Way' || data.status_teknisi == 'Arrived' || data.status_teknisi == 'Repairing' || data.status_teknisi == 'Working' || data.status_teknisi == 'Done'){
+        if(data.status_teknisi == 'Waiting' || data.status_teknisi == 'Accepted' || data.status_teknisi == 'On The Way' || data.status_teknisi == 'Arrived' || data.status_teknisi == 'Repairing' || data.status_teknisi == 'Working' || data.status_teknisi == 'Done' || data.status_teknisi == 'On Hold'){
             document.getElementById('trackTeknisi').classList.add('hidden');
             document.getElementById('sendEstimationArrivalTime').classList.add('hidden');
             document.getElementById('assignteknisi').classList.add('hidden');
+            document.getElementById('gantiTeknisiBtn').classList.add('hidden');
             document.getElementById('detailTeknisi').classList.remove('hidden');
             document.getElementById('namaTeknisi').innerText = data.teknisi?.name ?? '-';
             document.getElementById('noWaTeknisi').innerText = data.teknisi?.phone_number ?? '-';
             document.getElementById('user_id').value = data.teknisi?.id ?? '';
+            document.getElementById('statusTeknisiDetail').innerText = data.status_teknisi ?? '-';
+            document.getElementById('assignTimeInfo').innerText = data.teknisi_assigned_at
+                ? 'Ditugaskan pada: ' + formatDate(data.teknisi_assigned_at)
+                : '';
+            if(data.status_teknisi == 'On Hold'){
+                document.getElementById('holdInfo').classList.remove('hidden');
+                document.getElementById('holdReasonText').innerText = data.hold_reason ?? '-';
+            }else{
+                document.getElementById('holdInfo').classList.add('hidden');
+            }
          
-           await getALocationAddress(data.teknisi?.latitude,data.teknisi?.longitude);  
+           await getALocationAddress(data.teknisi?.latitude,data.teknisi?.longitude);
         }
         if(data.status_teknisi == 'On The Way'){
             document.getElementById('trackTeknisi').classList.remove('hidden');
             document.getElementById('sendEstimationArrivalTime').classList.remove('hidden');
             document.getElementById('map').src = `{{route('tracking')}}?id=${data.no_ticket}`;
         }
+
+        // teknisi belum merespons (masa Waiting/Accepted) -> izinkan ganti teknisi
+        if(data.status_teknisi == 'Waiting' || data.status_teknisi == 'Accepted'){
+            document.getElementById('gantiTeknisiBtn').classList.remove('hidden');
+        }
         
     }
     };
+
+    document.getElementById('gantiTeknisiBtn').addEventListener('click', () => {
+        document.getElementById('detailTeknisi').classList.add('hidden');
+        document.getElementById('assignteknisi').classList.remove('hidden');
+        document.getElementById('closeremote').classList.add('hidden');
+        document.getElementById('menungguKonfirmasi').classList.add('hidden');
+        document.getElementById('ticket_id').value = currentTicketData?.id ?? '';
+    });
 
     const parseCoordinate = (value) => {
         const parsed = parseFloat(value);
@@ -825,6 +904,15 @@ Dashboard
     };
 
     document.getElementById('sendEstimationArrivalTime').addEventListener('click', sendEstimationArrivalTime);
+
+    const sendCloseLink = () => {
+        if (!currentTicketData) {
+            alert('Data tiket belum tersedia');
+            return;
+        }
+        window.open(`/customer-support/send/${currentTicketData.id}`, '_blank');
+    };
+    document.getElementById('sendCloseLink').addEventListener('click', sendCloseLink);
 
     const getALocationAddress = (lat,long)=>{
         if (!lat || !long) {

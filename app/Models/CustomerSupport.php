@@ -10,6 +10,7 @@ class CustomerSupport extends Model
 {
     use HasFactory;
     protected $guarded = [];
+    protected $appends = ['resolution_time'];
 
 
     public function customer()
@@ -40,5 +41,29 @@ class CustomerSupport extends Model
     public function ulasan()
     {
         return $this->hasOne(UlasanCustomer::class, 'customer_support_id');
-    }   
+    }
+
+    /**
+     * Waktu resolution: durasi dari tiket dibuat (created_at) sampai selesai dikerjakan
+     * (waktu_selesai). Format "X hari, Y jam, Z menit". Tiket belum selesai → null.
+     */
+    public function getResolutionTimeAttribute()
+    {
+        // created_at Eloquent-cast (terbawa timezone), waktu_selesai string mentah DB.
+        // Hitung sebagai jam-dinding naif (strtotime) agar keduanya konsisten.
+        $createdStr = $this->created_at?->format('Y-m-d H:i:s');
+        $doneStr = $this->waktu_selesai;
+        if (!$createdStr || !$doneStr) {
+            return null;
+        }
+        $minutes = max(0, (int) round((strtotime($doneStr) - strtotime($createdStr)) / 60));
+        $days = intdiv($minutes, 1440);
+        $hours = intdiv($minutes % 1440, 60);
+        $mins = $minutes % 60;
+        $parts = [];
+        if ($days > 0) $parts[] = $days . ' hari';
+        if ($hours > 0) $parts[] = $hours . ' jam';
+        $parts[] = $mins . ' menit';
+        return implode(', ', $parts);
+    }
 }
