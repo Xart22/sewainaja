@@ -3,7 +3,7 @@
 @section('title', 'Hardware')
 
 @section('header')
-@vite(['resources/js/hardware.js', 'resources/js/bulk-select.js'])
+@vite(['resources/js/file-download.js', 'resources/js/hardware.js', 'resources/js/bulk-select.js'])
 
 <!-- AlpineJS -->
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
@@ -260,11 +260,11 @@ function openAssignModal(el) {
     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200">Hardware</h1>
         <div class="flex flex-wrap gap-2">
-            <a href="{{ route('master-data.hardware.export-qr-pdf') }}"
+            <a id="btn-export-qr" href="{{ route('master-data.hardware.export-qr-pdf') }}"
                 class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-rose-700 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:bg-rose-500 dark:hover:bg-rose-600 dark:focus:ring-rose-800">
                 Export QR PDF
             </a>
-            <a href="{{ route('master-data.hardware.export') }}"
+            <a id="btn-export-excel" href="{{ route('master-data.hardware.export') }}"
                 class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:bg-emerald-500 dark:hover:bg-emerald-600 dark:focus:ring-emerald-800">
                 Export Excel
             </a>
@@ -274,11 +274,11 @@ function openAssignModal(el) {
     <div id="bulk-toolbar" class="hidden mt-4 flex flex-wrap items-center gap-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 px-4 py-3">
         <span class="text-sm font-semibold text-indigo-800 dark:text-indigo-200"><span id="bulk-selected-count">0</span> item dipilih</span>
         <div class="flex flex-wrap gap-2 ms-auto">
-            <button type="button" data-bulk-action data-bulk-form="bulk-export-form"
+            <button type="button" data-bulk-action data-bulk-fetch data-bulk-form="bulk-export-form"
                 class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
                 Export Excel Terpilih
             </button>
-            <button type="button" data-bulk-action data-bulk-form="bulk-qr-form"
+            <button type="button" data-bulk-action data-bulk-fetch data-bulk-form="bulk-qr-form"
                 class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700">
                 Export QR PDF Terpilih
             </button>

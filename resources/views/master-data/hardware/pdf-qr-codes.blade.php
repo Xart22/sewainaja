@@ -26,43 +26,36 @@
             vertical-align: top;
         }
         .card {
+            width: 100%;
+            padding: 0;
+            page-break-inside: avoid;
+        }
+        .card img.card-img {
+            width: 100%;
+            display: block;
+        }
+        /* Hanya dipakai saat fallback (template tidak ada). */
+        .card-fallback {
             border: 1.5px solid #333;
             border-radius: 6px;
             padding: 8px;
-            height: 250px;
-            page-break-inside: avoid;
-            overflow: hidden;
-        }
-        .card-header {
-            border-bottom: 1px dashed #999;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
             text-align: center;
         }
-        .card-header h3 {
-            font-size: 13px;
+        .card-fallback img {
+            width: 150px;
+            height: 150px;
+        }
+        .card-fallback .hw-name {
+            font-size: 12px;
+            font-weight: bold;
             color: #1e3a8a;
             word-break: break-word;
+            margin-top: 4px;
         }
-        .card-header .sn {
-            font-size: 10px;
+        .card-fallback .hw-sub {
+            font-size: 9px;
             color: #555;
-            margin-top: 2px;
             word-break: break-all;
-        }
-        .qr {
-            text-align: center;
-            margin: 4px 0;
-        }
-        .qr img {
-            width: 130px;
-            height: 130px;
-        }
-        .customer {
-            font-size: 10px;
-            color: #333;
-            text-align: center;
-            word-break: break-word;
         }
     </style>
 </head>
@@ -74,17 +67,17 @@
         <tr>
             @foreach ($pair as $hardware)
             <td>
+                @if(!empty($hardware->card_composited))
                 <div class="card">
-                    <div class="card-header">
-                        <h3>{{ $hardware->hw_name ?: $hardware->hw_brand . ' ' . $hardware->hw_model }}</h3>
-                        <div class="sn">{{ $hardware->hw_brand }} {{ $hardware->hw_model }} | SN: {{ $hardware->hw_serial_number }}</div>
-                    </div>
-                    <div class="qr"><img src="{{ $hardware->qr_path }}" alt="QR"></div>
-                    <div class="customer">
-                       {{ optional($hardware->customer)->name }}<br>
-                        Scan untuk lapor kendala
-                    </div>
+                    <img class="card-img" src="{{ $hardware->card_path }}" alt="QR {{ $hardware->hw_serial_number }}">
                 </div>
+                @else
+                <div class="card-fallback">
+                    <img src="{{ $hardware->card_path }}" alt="QR">
+                    <div class="hw-name">{{ $hardware->card_title ?? ($hardware->hw_name ?: trim($hardware->hw_brand . ' ' . $hardware->hw_model)) }}</div>
+                    <div class="hw-sub">{{ $hardware->card_sub ?? ('SN: ' . $hardware->hw_serial_number) }}</div>
+                </div>
+                @endif
             </td>
             @endforeach
             @if ($pair->count() === 1)

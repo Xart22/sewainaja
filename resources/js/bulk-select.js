@@ -79,7 +79,7 @@
         };
 
         actions.forEach((btn) => {
-            btn.addEventListener("click", () => {
+            btn.addEventListener("click", async () => {
                 const form = document.getElementById(btn.dataset.bulkForm);
                 if (!form || selected.size === 0) {
                     return;
@@ -88,6 +88,19 @@
                     return;
                 }
                 injectIds(form);
+                // Tombol export (data-bulk-fetch): download via fetch agar ada
+                // loading state sampai file selesai dibuat server.
+                if (btn.hasAttribute("data-bulk-fetch") && window.FileDownload) {
+                    await window.FileDownload.download({
+                        btn,
+                        url: form.action,
+                        method: (form.method || "POST").toUpperCase(),
+                        body: new FormData(form),
+                        loadingText: "Menyiapkan...",
+                        fallbackName: "download",
+                    });
+                    return;
+                }
                 form.submit();
             });
         });

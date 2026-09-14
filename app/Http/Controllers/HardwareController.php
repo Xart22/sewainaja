@@ -342,11 +342,31 @@ class HardwareController extends Controller
             $query->whereIn('id', $request->input('ids'));
         }
 
+        $templatePath = public_path('images/hardware-qr-template.jpg');
+
         $hardwares = $query->get()
-            ->map(function ($hardware) use ($tempDir) {
+            ->map(function ($hardware) use ($tempDir, $templatePath) {
                 $qrFile = $tempDir . '/' . uniqid('qr_', true) . '.png';
                 $this->qrPng(route('customer-online', Crypt::encrypt($hardware->hw_serial_number)), $qrFile, 300);
-                $hardware->qr_path = $qrFile;
+
+                // Banner kuning hanya berisi nomor SN.
+                $serial = (string) $hardware->hw_serial_number;
+
+                // Gabung QR + SN ke template di server (GD), jadi PDF tinggal
+                // menampilkan 1 gambar per kartu tanpa positioning absolut.
+                $cardFile = $tempDir . '/' . uniqid('card_', true) . '.jpg';
+                if (is_file($templatePath)
+                    && $this->qrCard($templatePath, $qrFile, $serial, $cardFile)) {
+                    $hardware->card_path = $cardFile;
+                    $hardware->card_composited = true;
+                    @unlink($qrFile);
+                } else {
+                    // Fallback: template hilang -> kartu polos (QR + teks di blade).
+                    $hardware->card_path = $qrFile;
+                    $hardware->card_composited = false;
+                    $hardware->card_title = $hardware->hw_name ?: trim($hardware->hw_brand . ' ' . $hardware->hw_model);
+                    $hardware->card_sub = 'SN: ' . $serial;
+                }
 
                 return $hardware;
             });
@@ -359,7 +379,7 @@ class HardwareController extends Controller
                 ->download($fileName);
         } finally {
             foreach ($hardwares as $hardware) {
-                @unlink($hardware->qr_path);
+                @unlink($hardware->card_path ?? null);
             }
         }
     }
@@ -375,6 +395,9 @@ class HardwareController extends Controller
         $n = $matrix->getWidth();
         $margin = 2;
         $scale = (int) floor($size / ($n + $margin * 2));
+        // Sisa piksel (kanvas tidak habis dibagi) dibagi rata ke semua sisi
+        // agar matriks selalu tepat di tengah, bukan menempel kiri-atas.
+        $offset = (int) floor(($size - ($n + $margin * 2) * $scale) / 2);
 
         $img = imagecreatetruecolor($size, $size);
         $white = imagecolorallocate($img, 255, 255, 255);
@@ -386,10 +409,10 @@ class HardwareController extends Controller
                 if ($matrix->get($x, $y)) {
                     imagefilledrectangle(
                         $img,
-                        ($x + $margin) * $scale,
-                        ($y + $margin) * $scale,
-                        ($x + $margin + 1) * $scale - 1,
-                        ($y + $margin + 1) * $scale - 1,
+                        $offset + ($x + $margin) * $scale,
+                        $offset + ($y + $margin) * $scale,
+                        $offset + ($x + $margin + 1) * $scale - 1,
+                        $offset + ($y + $margin + 1) * $scale - 1,
                         $black
                     );
                 }
@@ -398,6 +421,157 @@ class HardwareController extends Controller
 
         imagepng($img, $destPath);
         imagedestroy($img);
+    }
+
+    /**
+     * Tempel QR ke kotak putih template + tulis nomor SN di banner kuning.
+     * Koordinat diukur dari template asli (fraksi lebar/tinggi, template persegi):
+     * kotak putih x 29.375%-73.5%, y 35.875%-80.25%; banner kuning x 24.1%-77.2%, y 82.0%-93.0%.
+     */
+    private function qrCard(string $templatePath, string $qrPath, string $serial, string $destPath): bool
+    {
+        $templateData = @file_get_contents($templatePath);
+        $qrData = @file_get_contents($qrPath);
+        if ($templateData === false || $qrData === false) {
+            return false;
+        }
+        $card = @imagecreatefromstring($templateData);
+        $qr = @imagecreatefromstring($qrData);
+        if ($card === false || $qr === false) {
+            if ($card !== false) imagedestroy($card);
+            if ($qr !== false) imagedestroy($qr);
+
+            return false;
+        }
+
+        $w = imagesx($card);
+        $h = imagesy($card);
+
+        // QR: tepat di tengah kotak putih (diukur: x 29.375%-73.5%, y 35.875%-80.25%),
+        // inset ~1.4% tiap sisi sebagai padding. QR di-autocrop dulu supaya
+        // sisa margin putih yang tidak simetris tidak menggeser titik tengah.
+        $qr = $this->autocropWhite($qr);
+        $dx = (int) round($w * 0.3044);
+        $dy = (int) round($h * 0.3706);
+        $dw = (int) round($w * 0.420);
+        $dh = (int) round($h * 0.420);
+        $white = imagecolorallocate($card, 255, 255, 255);
+        imagefilledrectangle($card, $dx, $dy, $dx + $dw, $dy + $dh, $white);
+        imagecopyresampled($card, $qr, $dx, $dy, 0, 0, $dw, $dh, imagesx($qr), imagesy($qr));
+        imagedestroy($qr);
+
+        // Nomor SN saja di banner kuning: satu baris besar, rata tengah
+        // horizontal maupun vertikal (tengah banner y 82.0%-93.0%).
+        $fontBold = base_path('vendor/dompdf/dompdf/lib/fonts/DejaVuSans-Bold.ttf');
+        $maxWidth = $w * 0.510;
+        $cx = (int) round($w * 0.5068);
+        $barTop = $h * 0.8206;
+
+        $snColor = imagecolorallocate($card, 10, 10, 92);
+
+        $snSize = (int) round($h * 0.038);
+        [$serial, $snSize] = $this->fitText($serial, $fontBold, $snSize, 14, $maxWidth);
+        $this->centerText($card, $serial, $fontBold, $snSize, $cx, (int) round($barTop + $h * 0.068), $snColor);
+
+        $ok = imagejpeg($card, $destPath, 85);
+        imagedestroy($card);
+
+        return $ok;
+    }
+
+    /** Potong margin putih di semua sisi gambar QR agar titik tengahnya akurat. */
+    private function autocropWhite($img)
+    {
+        $w = imagesx($img);
+        $h = imagesy($img);
+        $isWhite = static function (int $c): bool {
+            return (($c >> 16) & 255) > 245 && (($c >> 8) & 255) > 245 && ($c & 255) > 245;
+        };
+
+        $top = 0;
+        for (; $top < $h; $top++) {
+            for ($x = 0; $x < $w; $x++) {
+                if (!$isWhite(imagecolorat($img, $x, $top))) break 2;
+            }
+        }
+        $bottom = $h - 1;
+        for (; $bottom > $top; $bottom--) {
+            for ($x = 0; $x < $w; $x++) {
+                if (!$isWhite(imagecolorat($img, $x, $bottom))) break 2;
+            }
+        }
+        $left = 0;
+        for (; $left < $w; $left++) {
+            for ($y = $top; $y <= $bottom; $y++) {
+                if (!$isWhite(imagecolorat($img, $left, $y))) break 2;
+            }
+        }
+        $right = $w - 1;
+        for (; $right > $left; $right--) {
+            for ($y = $top; $y <= $bottom; $y++) {
+                if (!$isWhite(imagecolorat($img, $right, $y))) break 2;
+            }
+        }
+
+        // Jaga quiet zone simetris 2px agar QR tetap terbaca.
+        $pad = 2;
+        $left = max(0, $left - $pad);
+        $top = max(0, $top - $pad);
+        $right = min($w - 1, $right + $pad);
+        $bottom = min($h - 1, $bottom + $pad);
+
+        $cw = $right - $left + 1;
+        $ch = $bottom - $top + 1;
+        if ($cw <= 0 || $ch <= 0 || ($cw === $w && $ch === $h)) {
+            return $img;
+        }
+        $cropped = imagecreatetruecolor($cw, $ch);
+        $white = imagecolorallocate($cropped, 255, 255, 255);
+        imagefill($cropped, 0, 0, $white);
+        imagecopy($cropped, $img, 0, 0, $left, $top, $cw, $ch);
+        imagedestroy($img);
+
+        return $cropped;
+    }
+
+    /** Kecilkan font lalu potong teks (dengan '...') agar muat dalam $maxWidth. */
+    private function fitText(string $text, string $font, int $size, int $min, float $maxWidth): array
+    {
+        $text = trim(preg_replace('/\s+/', ' ', $text) ?: '');
+        while ($size > $min && $this->textWidth($text, $font, $size) > $maxWidth) {
+            $size--;
+        }
+        if ($text !== '' && $this->textWidth($text, $font, $size) > $maxWidth) {
+            while ($text !== '' && $this->textWidth($text . '...', $font, $size) > $maxWidth) {
+                $text = mb_substr($text, 0, mb_strlen($text) - 1);
+            }
+            $text = rtrim($text, " ,.|-\t") . '...';
+        }
+
+        return [$text, $size];
+    }
+
+    private function textWidth(string $text, string $font, int $size): float
+    {
+        $box = imagettfbbox($size, 0, $font, $text === '' ? ' ' : $text);
+        if ($box === false) {
+            return 0;
+        }
+
+        return max($box[2], $box[4]) - min($box[0], $box[6]);
+    }
+
+    private function centerText($img, string $text, string $font, int $size, int $cx, int $y, int $color): void
+    {
+        if ($text === '') {
+            return;
+        }
+        $box = imagettfbbox($size, 0, $font, $text);
+        if ($box === false) {
+            return;
+        }
+        $width = max($box[2], $box[4]) - min($box[0], $box[6]);
+        imagettftext($img, $size, 0, (int) round($cx - $width / 2), $y, $color, $font, $text);
     }
 
     private function resolveContractId(?int $customerId): ?int

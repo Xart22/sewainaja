@@ -35,6 +35,35 @@ const collectState = (wrapper) => {
     };
 };
 
+// Export (QR PDF & Excel) via fetch agar tombol menampilkan loading state
+// sampai file selesai dibuat server, lalu diunduh otomatis.
+const wireExportDownload = () => {
+    if (!window.FileDownload) return;
+    [
+        ["btn-export-qr", "qr_codes.pdf"],
+        ["btn-export-excel", "hardware.xlsx"],
+    ].forEach(([id, fallback]) => {
+        const el = document.getElementById(id);
+        if (!el || el.dataset.downloadReady) return;
+        el.dataset.downloadReady = "1";
+        el.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.FileDownload.download({
+                btn: el,
+                url: el.href,
+                loadingText: "Menyiapkan...",
+                fallbackName: fallback,
+            });
+        });
+    });
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", wireExportDownload);
+} else {
+    wireExportDownload();
+};
+
 const dataTable = [document.querySelector("#tableHardware")];
 
 dataTable.forEach((table) => {
